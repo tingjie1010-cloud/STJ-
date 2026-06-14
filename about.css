@@ -1,0 +1,246 @@
+/* ----------------------------------------------
+   極簡美學 · 純黑背景 · 白灰文字 · 香檳金點綴
+   關於我頁面專用
+------------------------------------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #000000;
+    color: #FFFFFF;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+/* ---------- 毛玻璃導覽列 ---------- */
+.glass-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1.2rem 2rem;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #FFFFFF;
+    text-decoration: none;
+    letter-spacing: -0.02em;
+    transition: opacity 0.2s;
+}
+
+.nav-logo:hover {
+    opacity: 0.7;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-btn {
+    color: #FFFFFF;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 400;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.nav-btn.active {
+    opacity: 1;
+    color: #D4AF37;
+}
+
+.nav-btn:hover {
+    opacity: 1;
+}
+
+/* ---------- 主內容區：兩欄 ---------- */
+.about-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 2rem 80px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 80px;
+    align-items: center;
+}
+
+/* 左欄 */
+.about-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.avatar-wrapper {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+.avatar-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.basic-info {
+    text-align: center;
+}
+
+.basic-info h3 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #D4AF37;
+}
+
+.basic-info p {
+    font-size: 0.95rem;
+    color: #AAAAAA;
+    margin-bottom: 0.3rem;
+}
+
+.tagline {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    color: #888;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 1rem;
+}
+
+/* 右欄 */
+.about-right {
+    text-align: left;
+}
+
+.section-label {
+    font-size: 0.75rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #888888;
+    margin-bottom: 1rem;
+}
+
+.about-right h2 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    color: #FFFFFF;
+}
+
+.bio-block p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #CCCCCC;
+    margin-bottom: 1rem;
+}
+
+.bio-block strong {
+    color: #D4AF37;
+    font-weight: 600;
+}
+
+.skills-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 2rem;
+}
+
+.skills-cloud span {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    color: #D4AF37;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    transition: all 0.2s;
+}
+
+.skills-cloud span:hover {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: #D4AF37;
+}
+
+/* 頁尾 */
+.footer {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding: 2rem;
+    text-align: center;
+    font-size: 0.7rem;
+    color: #555;
+    letter-spacing: 1px;
+}
+
+/* 響應式 */
+@media (max-width: 900px) {
+    .container {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        text-align: center;
+    }
+    .about-right {
+        text-align: center;
+    }
+    .skills-cloud {
+        justify-content: center;
+    }
+    .avatar-wrapper {
+        width: 180px;
+        height: 180px;
+    }
+    .about-right h2 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-section {
+        padding: 100px 1.5rem 60px;
+    }
+    .avatar-wrapper {
+        width: 140px;
+        height: 140px;
+    }
+    .bio-block p {
+        font-size: 0.9rem;
+    }
+    .nav-links {
+        gap: 1rem;
+    }
+}

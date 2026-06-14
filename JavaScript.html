@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Ting | JavaScript 基礎教學（最詳細版本）</title>
+    <meta name="description" content="JavaScript 完整基礎教學 — 從變數到非同步，一次學會互動網頁。">
+    <meta name="author" content="Ting">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #04040C;
+            font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+            color: #EDEDF0;
+            line-height: 1.5;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 背景金色拋物線畫布 */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            background-image: linear-gradient(rgba(212, 175, 55, 0.025) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(212, 175, 55, 0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            background: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 40%, rgba(4, 4, 12, 0.85) 100%);
+        }
+
+        /* 毛玻璃導覽列 */
+        .glass-nav {
+            position: fixed;
+            top: 20px;
+            left: 5%;
+            right: 5%;
+            background: rgba(8, 8, 18, 0.6);
+            backdrop-filter: blur(20px) saturate(1.4);
+            border-radius: 70px;
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: navSlide 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes navSlide {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.7rem 2rem;
+        }
+
+        .nav-logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF, #D4AF37);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            color: #D4AF37;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .back-btn:hover {
+            background: rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* 主內容容器 */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 130px 20px 80px;
+        }
+
+        /* 標題區 */
+        .title-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .section-tag {
+            font-size: 0.75rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: #D4AF37;
+        }
+        .main-title {
+            font-size: clamp(2.8rem, 12vw, 4.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF, #D4AF37);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin: 0.5rem 0;
+        }
+        .sub-title {
+            font-size: 1.2rem;
+            color: #888898;
+        }
+
+        /* 示意圖片區 */
+        .image-showcase {
+            max-width: 900px;
+            margin: 2rem auto;
+            border-radius: 28px;
+            background: rgba(12, 12, 22, 0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            overflow: hidden;
+            text-align: center;
+        }
+        .image-showcase img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 章節卡片 */
+        .cards-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .topic-card {
+            background: rgba(12, 12, 22, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            padding: 1.8rem;
+            transition: all 0.3s;
+        }
+        .topic-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(212, 175, 55, 0.6);
+            box-shadow: 0 15px 25px -12px rgba(0, 0, 0, 0.5);
+        }
+        .topic-card h3 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: #D4AF37;
+            margin-bottom: 0.8rem;
+        }
+        .code-block {
+            background: rgba(4, 4, 14, 0.9);
+            border-left: 3px solid #D4AF37;
+            padding: 1rem;
+            border-radius: 16px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            color: #EDEDF0;
+        }
+        .keyword { color: #D4AF37; font-weight: 500; }
+        .comment { color: #6A9955; }
+        .var { color: #9CDCFE; }
+        .string { color: #CE9178; }
+        .func { color: #DCDCAA; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        th, td {
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 0.6rem;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        th {
+            background: rgba(212, 175, 55, 0.1);
+            color: #D4AF37;
+        }
+        .practice-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+        .practice-list li {
+            margin-bottom: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .practice-list input {
+            width: 18px;
+            height: 18px;
+            accent-color: #D4AF37;
+        }
+
+        /* 影片教學連結 */
+        .video-section {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: rgba(12, 12, 22, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .video-section h3 {
+            font-size: 1.6rem;
+            color: #D4AF37;
+        }
+        .ig-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(212, 175, 55, 0.15);
+            padding: 0.8rem 1.8rem;
+            border-radius: 60px;
+            text-decoration: none;
+            color: #D4AF37;
+            margin-top: 1rem;
+            transition: 0.2s;
+        }
+        .ig-link:hover {
+            background: rgba(212, 175, 55, 0.3);
+            transform: translateY(-3px);
+        }
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(212, 175, 55, 0.12);
+            font-size: 0.7rem;
+            color: #383848;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding-top: 100px; }
+            .topic-card h3 { font-size: 1.4rem; }
+            .code-block { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="vignette"></div>
+
+<header>
+    <nav class="glass-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">Ting.</a>
+            <a href="skills.html" class="back-btn">← 返回技能樹</a>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="title-section">
+        <div class="section-tag">— 世界上最好懂的 JavaScript 教學</div>
+        <h1 class="main-title">JavaScript</h1>
+        <div class="sub-title">讓網頁活起來 · 從零開始一次學會</div>
+    </div>
+
+    <!-- 示意圖片 -->
+    <div class="image-showcase">
+        <img src="https://picsum.photos/id/0/900/400" alt="JavaScript 教學示意圖 – 程式碼範例">
+    </div>
+
+    <div class="cards-grid">
+        <!-- 1. JavaScript 是什麼？ -->
+        <div class="topic-card">
+            <h3>⚡ 1. JavaScript 是什麼？</h3>
+            <p><span class="keyword">JavaScript</span> 是網頁的「互動大腦」。HTML 是骨架，CSS 是化妝，JS 則是讓網頁可以回應點擊、計算數字、抓取資料、改變內容……<strong>沒有 JS 的網頁就像一本靜態的書</strong>。</p>
+            <p>📌 為什麼要學？因為它是全世界最流行的程式語言，不論前端還是後端都能用。</p>
+            <div class="code-block">
+                <code>
+                    <span class="comment">// 這是一個最簡單的 JS 程式</span><br>
+                    <span class="var">let</span> message = <span class="string">"你好，世界！"</span>;<br>
+                    <span class="func">console.log</span>(message);   <span class="comment">// 在開發者工具中印出訊息</span>
+                </code>
+            </div>
+        </div>
+
+        <!-- 2. 如何引入 JS -->
+        <div class="topic-card">
+            <h3>📥 2. 三種引入 JavaScript 的方式</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li><span class="keyword">行內事件</span>：寫在 HTML 標籤的 <code>onclick</code> 等屬性（不推薦）</li>
+                <li><span class="keyword">內部腳本</span>：寫在 <span class="tag">&lt;script&gt;</span> 標籤內，通常放在 <code>&lt;body&gt;</code> 底部</li>
+                <li><span class="keyword">外部腳本</span>：獨立 <code>.js</code> 檔案，透過 <span class="tag">&lt;script src=""&gt;</span> 引入（最佳實務）</li>
+            </ul>
+            <div class="code-block">
+                <code>
+                    <span class="comment">&lt;!-- 外部引入範例 (寫在 HTML 底部) --&gt;</span><br>
+                    <span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="value">"script.js"</span><span class="tag">&gt;&lt;/script&gt;</span>
+                </code>
+            </div>
+        </div>
+
+        <!-- 3. 變數與資料型別 -->
+        <div class="topic-card">
+            <h3>📦 3. 變數與資料型別</h3>
+            <p>變數就像「箱子」，用來存放資料。用 <span class="keyword">let</span> 或 <span class="keyword">const</span> 宣告。</p>
+            <div class="code-block">
+                <code>
+                    <span class="var">let</span> age = <span class="string">16</span>;                 <span class="comment">// 數字</span><br>
+                    <span class="var">const</span> name = <span class="string">"Ting"</span>;          <span class="comment">// 文字（字串）</span><br>
+                    <span class="var">let</span> isStudent = <span class="string">true</span>;         <span class="comment">// 布林值（true/false）</span><br>
+                    <span class="var">let</span> hobbies = [<span class="string">"籃球"</span>, <span class="string">"程式"</span>];  <span class="comment">// 陣列</span><br>
+                    <span class="var">let</span> person = { name: <span class="string">"Ting"</span>, age: <span class="string">16</span> }; <span class="comment">// 物件</span>
+                </code>
+            </div>
+            <p>🔍 注意：<code>const</code> 宣告的變數不能重新賦值，<code>let</code> 可以改變。</p>
+        </div>
+
+        <!-- 4. 函式 – 打包重複使用的程式 -->
+        <div class="topic-card">
+            <h3>🧩 4. 函式 – 把程式包起來，隨時呼叫</h3>
+            <p>函式就像「食譜」，定義好步驟之後，想用隨時叫它執行。</p>
+            <div class="code-block">
+                <code>
+                    <span class="comment">// 定義一個打招呼的函式</span><br>
+                    <span class="var">function</span> <span class="func">sayHello</span>(name) { <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="func">console</span>.log(<span class="string">"嗨，</span>" + name);<br>
+                    } <br>
+                    <span class="func">sayHello</span>(<span class="string">"Ting"</span>);  <span class="comment">// 呼叫函式，印出「嗨，Ting」</span>
+                </code>
+            </div>
+            <p>📌 箭頭函式（ES6 新語法）：<code>const add = (a, b) => a + b;</code></p>
+        </div>
+
+        <!-- 5. DOM 操作 – 改變網頁內容 -->
+        <div class="topic-card">
+            <h3>🖱️ 5. DOM 操作 – 用 JavaScript 控制網頁元素</h3>
+            <p>DOM (Document Object Model) 是 HTML 的樹狀結構，JS 可以選取元素、修改文字、樣式、甚至增刪標籤。</p>
+            <div class="code-block">
+                <code>
+                    <span class="comment">// 選取一個元素並改變內容</span><br>
+                    <span class="var">let</span> title = <span class="func">document</span>.<span class="func">querySelector</span>(<span class="string">"h1"</span>);<br>
+                    title.<span class="var">innerText</span> = <span class="string">"新標題"</span>;<br>
+                    title.<span class="var">style</span>.<span class="var">color</span> = <span class="string">"gold"</span>;        <span class="comment">// 改變顏色</span>
+                </code>
+            </div>
+            <p>常用方法：<code>getElementById</code>、<code>querySelector</code>、<code>innerHTML</code>、<code>classList.add/remove</code>。</p>
+        </div>
+
+        <!-- 6. 事件監聽 – 讓網頁回應使用者 -->
+        <div class="topic-card">
+            <h3>🎯 6. 事件監聽 – 點擊、輸入、滑鼠移動……</h3>
+            <p>事件是 JS 互動的核心。例如：按鈕被點擊時，執行某段程式。</p>
+            <div class="code-block">
+                <code>
+                    <span class="comment">// 選取按鈕，加上點擊事件</span><br>
+                    <span class="var">let</span> btn = <span class="func">document</span>.<span class="func">querySelector</span>(<span class="string">"button"</span>);<br>
+                    btn.<span class="func">addEventListener</span>(<span class="string">"click"</span>, () => {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;alert(<span class="string">"你點擊了按鈕！"</span>);<br>
+                    });
+                </code>
+            </div>
+            <p>📌 常見事件：<code>click</code>（點擊）、<code>mouseover</code>（滑入）、<code>input</code>（輸入內容）、<code>submit</code>（表單送出）。</p>
+        </div>
+
+        <!-- 7. 陣列與物件 – 整理大量資料 -->
+        <div class="topic-card">
+            <h3>🗂️ 7. 陣列與物件 – 管理資料的好幫手</h3>
+            <p><span class="keyword">陣列</span>用來存放「一組清單」，<span class="keyword">物件</span>用來描述「一個東西的詳細資訊」。</p>
+            <div class="code-block">
+                <code>
+                    <span class="comment">// 陣列：好朋友的名字清單</span><br>
+                    <span class="var">let</span> friends = [<span class="string">"小明"</span>, <span class="string">"小華"</span>, <span class="string">"小美"</span>];<br>
+                    <span class="func">console</span>.log(friends[<span class="string">0</span>]);   <span class="comment">// 印出「小明」</span><br><br>
+                    <span class="comment">// 物件：一本書的資訊</span><br>
+                    <span class="var">let</span> book = { title: <span class="string">"JS 入門"</span>, pages: <span class="string">300</span>, author: <span class="string">"Ting"</span> };<br>
+                    <span class="func">console</span>.log(book.title);   <span class="comment">// 印出「JS 入門」</span>
+                </code>
+            </div>
+            <p>常用陣列方法：<code>push</code>、<code>pop</code>、<code>map</code>、<code>filter</code>、<code>forEach</code>。</p>
+        </div>
+
+        <!-- 8. 條件判斷與迴圈 -->
+        <div class="topic-card">
+            <h3>🔄 8. 條件判斷與迴圈 – 讓程式做決定、重複執行</h3>
+            <p><span class="keyword">if-else</span> 根據條件執行不同程式；<span class="keyword">for/while</span> 重複做同一件事。</p>
+            <div class="code-block">
+                <code>
+                    <span class="comment">// 條件判斷</span><br>
+                    <span class="var">let</span> score = <span class="string">85</span>;<br>
+                    <span class="var">if</span> (score >= <span class="string">60</span>) { <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="func">console</span>.log(<span class="string">"及格！"</span>);<br>
+                    } <span class="var">else</span> { <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="func">console</span>.log(<span class="string">"加油！"</span>);<br>
+                    }<br><br>
+                    <span class="comment">// for 迴圈：印出 1 到 5</span><br>
+                    <span class="var">for</span> (<span class="var">let</span> i = <span class="string">1</span>; i <= <span class="string">5</span>; i++) { <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="func">console</span>.log(i);<br>
+                    }
+                </code>
+            </div>
+        </div>
+
+        <!-- 9. 非同步 JS (Promise, async/await) -->
+        <div class="topic-card">
+            <h3>⏳ 9. 非同步 – 等待資料載入、不卡畫面</h3>
+            <p>當你需要向伺服器要資料（例如天氣 API），JS 不會停下來等，而是用<span class="keyword">非同步</span>方式處理。</p>
+            <div class="code-block">
+                <code>
+                    <span class="comment">// 模擬兩秒後顯示訊息 (setTimeout)</span><br>
+                    <span class="func">setTimeout</span>(() => {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="func">console</span>.log(<span class="string">"2 秒後執行"</span>);<br>
+                    }, <span class="string">2000</span>);<br><br>
+                    <span class="comment">// Promise 範例</span><br>
+                    <span class="var">let</span> fetchData = () => { <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="var">return</span> <span class="var">new</span> <span class="func">Promise</span>((resolve) => {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="func">setTimeout</span>(() => resolve(<span class="string">"資料載入完成"</span>), <span class="string">1000</span>);<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;});<br>
+                    };<br>
+                    <span class="func">fetchData</span>().then(<span class="func">console.log</span>);
+                </code>
+            </div>
+            <p>🔥 現代寫法更推薦 <code>async/await</code>，讓非同步程式像同步一樣好讀。</p>
+        </div>
+
+        <!-- 10. 自我檢測 + 實作 -->
+        <div class="topic-card">
+            <h3>✅ 10. 你學會了嗎？動手勾選＋實作</h3>
+            <ul class="practice-list">
+                <li><input type="checkbox"> 我知道 JavaScript 是用來讓網頁產生互動的。</li>
+                <li><input type="checkbox"> 我會宣告變數（let / const）並區別數字、字串、布林值。</li>
+                <li><input type="checkbox"> 我會寫函式（function）並呼叫它。</li>
+                <li><input type="checkbox"> 我會用 querySelector 選取網頁元素，並修改內容或樣式。</li>
+                <li><input type="checkbox"> 我會用 addEventListener 監聽按鈕點擊事件。</li>
+                <li><input type="checkbox"> 我理解陣列與物件的簡單用法。</li>
+                <li><input type="checkbox"> 我會寫 if-else 條件判斷和 for 迴圈。</li>
+                <li><input type="checkbox"> 我知道非同步概念（setTimeout、Promise 的初步印象）。</li>
+            </ul>
+            <p>🎯 實作小挑戰：做一個按鈕，點擊後讓畫面上的文字變成「你點到我了！」。</p>
+            <div class="code-block" style="margin-top: 1rem;">
+                💡 提示：先用 HTML 做一個 <code>&lt;button&gt;</code> 和一個 <code>&lt;p&gt;</code>，再用 JS 監聽 click 事件，改變該段落的 <code>innerText</code>。
+            </div>
+        </div>
+    </div>
+
+    <!-- 更詳細影片教學（Instagram） -->
+    <div class="video-section">
+        <h3>📺 更詳細影片教學</h3>
+        <p>想看實際操作、一步步學會 JS？追蹤我的 Instagram，每週更新程式教學短影片。</p>
+        <a href="https://www.instagram.com/stj_engineer?igsh=MW53aTFsZ2VmeTFiZw==" target="_blank" rel="noopener noreferrer" class="ig-link">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.248.637.415 1.363.465 2.428.05 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.217 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.248-1.363.415-2.428.465-1.066.05-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.217-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.01 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.065.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.902 4.902 0 0 1 5.45 2.525c.637-.248 1.363-.415 2.428-.465C8.944 2.01 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/>
+            </svg>
+            @stj_engineer
+        </a>
+    </div>
+</main>
+
+<footer class="footer">
+    <p>© 2025 Ting · 從程式碼到球場，一致的行動力</p>
+</footer>
+
+<script>
+    // 背景金色籃球拋物線動畫（與 HTML/CSS 頁面相同）
+    (function() {
+        const canvas = document.getElementById('bg-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        const TRAJS = [
+            { sx:0.08, sy:0.88, ex:0.92, ey:0.72, apex:0.24, col:'rgba(212,175,55,0.18)' },
+            { sx:0.18, sy:0.92, ex:0.82, ey:0.52, apex:0.20, col:'rgba(212,175,55,0.20)' },
+            { sx:0.72, sy:0.78, ex:0.18, ey:0.88, apex:0.28, col:'rgba(212,175,55,0.14)' },
+            { sx:0.48, sy:0.96, ex:0.52, ey:0.62, apex:0.14, col:'rgba(230,200,100,0.16)' }
+        ];
+        class Dot {
+            constructor(idx, t = Math.random(), spd = 0.002 + Math.random() * 0.003) {
+                this.idx = idx; this.t = t; this.spd = spd;
+            }
+            update() { this.t += this.spd; if (this.t > 1) this.t = 0; }
+            pos() {
+                const tr = TRAJS[this.idx];
+                const x1 = tr.sx * width, y1 = tr.sy * height;
+                const x2 = tr.ex * width, y2 = tr.ey * height;
+                const apexY = tr.apex * height;
+                const mx = (x1 + x2) / 2;
+                const my = Math.min(y1, y2) - apexY;
+                const mt = 1 - this.t, t = this.t;
+                return { x: mt*mt*x1 + 2*mt*t*mx + t*t*x2, y: mt*mt*y1 + 2*mt*t*my + t*t*y2 };
+            }
+            draw() {
+                const {x, y} = this.pos();
+                ctx.beginPath(); ctx.arc(x, y, 3.2, 0, Math.PI*2);
+                ctx.fillStyle = '#D4AF37'; ctx.shadowBlur = 12; ctx.shadowColor = 'rgba(212,175,55,0.8)';
+                ctx.fill(); ctx.shadowBlur = 0;
+            }
+        }
+        let dots = [];
+        function init() {
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width; canvas.height = height;
+            dots = [];
+            for (let i = 0; i < TRAJS.length; i++) {
+                dots.push(new Dot(i, Math.random() * 0.8, 0.002 + Math.random() * 0.002));
+                if (i < 2) dots.push(new Dot(i, Math.random(), 0.0018));
+            }
+        }
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            TRAJS.forEach(tr => {
+                const x1 = tr.sx * width, y1 = tr.sy * height;
+                const x2 = tr.ex * width, y2 = tr.ey * height;
+                const apex = tr.apex * height;
+                const mx = (x1 + x2) / 2;
+                const my = Math.min(y1, y2) - apex;
+                ctx.beginPath(); ctx.moveTo(x1, y1);
+                for (let t = 0; t <= 1; t += 0.018) {
+                    const mt = 1 - t;
+                    ctx.lineTo(mt*mt*x1 + 2*mt*t*mx + t*t*x2, mt*mt*y1 + 2*mt*t*my + t*t*y2);
+                }
+                ctx.strokeStyle = tr.col; ctx.lineWidth = 1.3; ctx.shadowBlur = 3;
+                ctx.shadowColor = 'rgba(212,175,55,0.4)'; ctx.stroke();
+            });
+            ctx.shadowBlur = 0;
+            dots.forEach(d => { d.update(); d.draw(); });
+            requestAnimationFrame(draw);
+        }
+        window.addEventListener('resize', () => { init(); });
+        init(); draw();
+    })();
+</script>
+</body>
+</html>

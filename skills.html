@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ting | 技能樹</title>
+<meta name="description" content="Ting 的技能樹 — 點擊蘋果探索 HTML5 / CSS3 / JavaScript 教學。">
+
+<!-- Favicon: 圓形 STJ 頭像 -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19.5' fill='%23FFFFFF' stroke='%23E0E0E0' stroke-width='0.5'/%3E%3Ctext x='20' y='25' text-anchor='middle' font-family='Georgia, Times New Roman, serif' font-size='18' font-weight='500' fill='%23000000'%3ESTJ%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="skills.css">
+</head>
+<body>
+
+<!-- Background -->
+<canvas id="bg-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="vignette"></div>
+
+<!-- Redirect overlay -->
+<div id="redirect-overlay">
+  <div class="redirect-msg">
+    <span id="redirect-label">前往教學...</span>
+  </div>
+</div>
+
+<!-- Nav -->
+<header>
+  <nav class="glass-nav">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">Ting.</a>
+      <a href="index.html" class="nav-back">← 返回首頁</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-label">— 知識果園</div>
+    <h1 class="page-title">技能樹</h1>
+    <p class="page-subtitle">點擊蘋果，讓它砸醒 Ting，開始學習之旅</p>
+  </div>
+  <!-- ── TREE SCENE ── -->
+  <div class="tree-scene">
+
+    <!-- Tree SVG -->
+    <div class="tree-svg-wrap">
+      <svg id="treeSVG" viewBox="0 0 680 560" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+        <defs>
+          <!-- Gradients -->
+          <linearGradient id="trunkGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#3D2B1F"/>
+            <stop offset="40%"  stop-color="#5C3D28"/>
+            <stop offset="100%" stop-color="#3A2218"/>
+          </linearGradient>
+          <linearGradient id="foliageGrad1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#2D6A4F"/>
+            <stop offset="100%" stop-color="#1A4035"/>
+          </linearGradient>
+          <linearGradient id="foliageGrad2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#386641"/>
+            <stop offset="100%" stop-color="#1E4028"/>
+          </linearGradient>
+          <linearGradient id="foliageGrad3" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#255C3A"/>
+            <stop offset="100%" stop-color="#143325"/>
+          </linearGradient>
+          <radialGradient id="appleRed" cx="38%" cy="30%" r="60%">
+            <stop offset="0%"   stop-color="#FF6B6B"/>
+            <stop offset="55%"  stop-color="#E53535"/>
+            <stop offset="100%" stop-color="#9B1C1C"/>
+          </radialGradient>
+          <radialGradient id="appleBlue" cx="38%" cy="30%" r="60%">
+            <stop offset="0%"   stop-color="#74C0FC"/>
+            <stop offset="55%"  stop-color="#228BE6"/>
+            <stop offset="100%" stop-color="#1864AB"/>
+          </radialGradient>
+          <radialGradient id="appleYellow" cx="38%" cy="30%" r="60%">
+            <stop offset="0%"   stop-color="#FFE066"/>
+            <stop offset="55%"  stop-color="#F59F00"/>
+            <stop offset="100%" stop-color="#9C6B00"/>
+          </radialGradient>
+          <filter id="leafGlow" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="b"/>
+            <feFlood flood-color="#2D6A4F" flood-opacity="0.4" result="c"/>
+            <feComposite in="c" in2="b" operator="in" result="d"/>
+            <feMerge><feMergeNode in="d"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="appleGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="5"/>
+          </filter>
+          <filter id="goldGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/>
+            <feFlood flood-color="#D4AF37" flood-opacity="0.6" result="c"/>
+            <feComposite in="c" in2="b" operator="in" result="d"/>
+            <feMerge><feMergeNode in="d"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- ═══ GROUND ═══ -->
+        <ellipse cx="340" cy="548" rx="220" ry="14"
+                 fill="rgba(76,175,125,0.06)" stroke="rgba(76,175,125,0.15)" stroke-width="1"/>
+
+        <!-- ═══ ROOTS ═══ -->
+        <path d="M310 520 Q285 530 260 525 Q240 518 235 510" stroke="#3D2B1F" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <path d="M370 520 Q395 530 420 525 Q440 518 445 510" stroke="#3D2B1F" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <path d="M340 525 Q340 535 340 545"                  stroke="#3D2B1F" stroke-width="10" fill="none" stroke-linecap="round"/>
+        <path d="M300 522 Q275 535 250 532"                  stroke="#3D2B1F" stroke-width="5"  fill="none" stroke-linecap="round"/>
+        <path d="M380 522 Q405 535 430 532"                  stroke="#3D2B1F" stroke-width="5"  fill="none" stroke-linecap="round"/>
+
+        <!-- ═══ TRUNK ═══ -->
+        <!-- Main trunk -->
+        <path d="M315 520 Q308 440 312 380 Q316 320 320 260 Q324 200 330 140 Q334 100 340 72"
+              stroke="url(#trunkGrad)" stroke-width="36" fill="none" stroke-linecap="round"/>
+        <path d="M365 520 Q372 440 368 380 Q364 320 360 260 Q356 200 350 140 Q346 100 340 72"
+              stroke="url(#trunkGrad)" stroke-width="36" fill="none" stroke-linecap="round"/>
+        <!-- Trunk highlight -->
+        <path d="M332 480 Q328 400 330 340 Q332 280 336 220 Q338 180 340 140"
+              stroke="rgba(120,70,40,0.4)" stroke-width="6" fill="none" stroke-linecap="round"/>
+
+        <!-- Main branch LEFT -->
+        <path d="M326 300 Q285 270 240 250 Q210 238 185 240"
+              stroke="url(#trunkGrad)" stroke-width="18" fill="none" stroke-linecap="round"/>
+        <path d="M240 250 Q215 244 190 255 Q175 262 165 275"
+              stroke="url(#trunkGrad)" stroke-width="10" fill="none" stroke-linecap="round"/>
+        <path d="M220 248 Q200 235 182 228"
+              stroke="url(#trunkGrad)" stroke-width="8" fill="none" stroke-linecap="round"/>
+
+        <!-- Main branch RIGHT -->
+        <path d="M354 300 Q395 270 440 250 Q470 238 495 240"
+              stroke="url(#trunkGrad)" stroke-width="18" fill="none" stroke-linecap="round"/>
+        <path d="M440 250 Q465 244 490 255 Q505 262 515 275"
+              stroke="url(#trunkGrad)" stroke-width="10" fill="none" stroke-linecap="round"/>
+        <path d="M460 248 Q480 235 498 228"
+              stroke="url(#trunkGrad)" stroke-width="8" fill="none" stroke-linecap="round"/>
+
+        <!-- Upper branch LEFT -->
+        <path d="M332 200 Q300 175 268 162 Q245 154 225 158"
+              stroke="url(#trunkGrad)" stroke-width="12" fill="none" stroke-linecap="round"/>
+        <!-- Upper branch RIGHT -->
+        <path d="M348 200 Q380 175 412 162 Q435 154 455 158"
+              stroke="url(#trunkGrad)" stroke-width="12" fill="none" stroke-linecap="round"/>
+
+        <!-- ═══ FOLIAGE CLUSTERS ═══ -->
+        <!-- Back layer (darker) -->
+        <ellipse cx="340" cy="155" rx="145" ry="115" fill="url(#foliageGrad3)" opacity="0.7"/>
+        <ellipse cx="200" cy="210" rx="100" ry="82"  fill="url(#foliageGrad3)" opacity="0.65"/>
+        <ellipse cx="480" cy="210" rx="100" ry="82"  fill="url(#foliageGrad3)" opacity="0.65"/>
+
+        <!-- Mid layer -->
+        <ellipse cx="340" cy="130" rx="162" ry="128" fill="url(#foliageGrad2)" filter="url(#leafGlow)"/>
+        <ellipse cx="195" cy="190" rx="115" ry="90"  fill="url(#foliageGrad2)" filter="url(#leafGlow)"/>
+        <ellipse cx="485" cy="190" rx="115" ry="90"  fill="url(#foliageGrad2)" filter="url(#leafGlow)"/>
+        <ellipse cx="260" cy="170" rx="90"  ry="72"  fill="url(#foliageGrad1)" opacity="0.8"/>
+        <ellipse cx="420" cy="170" rx="90"  ry="72"  fill="url(#foliageGrad1)" opacity="0.8"/>
+
+        <!-- Front layer (brightest) -->
+        <ellipse cx="340" cy="108" rx="148" ry="112" fill="url(#foliageGrad1)"/>
+        <ellipse cx="185" cy="175" rx="105" ry="84"  fill="url(#foliageGrad1)"/>
+        <ellipse cx="495" cy="175" rx="105" ry="84"  fill="url(#foliageGrad1)"/>
+        <ellipse cx="280" cy="155" rx="80"  ry="64"  fill="url(#foliageGrad2)" opacity="0.9"/>
+        <ellipse cx="400" cy="155" rx="80"  ry="64"  fill="url(#foliageGrad2)" opacity="0.9"/>
+
+        <!-- Leaf shimmer dots -->
+        <circle cx="310" cy="90"  r="3" fill="rgba(150,255,150,0.18)"/>
+        <circle cx="370" cy="82"  r="2" fill="rgba(150,255,150,0.15)"/>
+        <circle cx="220" cy="158" r="2.5" fill="rgba(150,255,150,0.15)"/>
+        <circle cx="460" cy="158" r="2.5" fill="rgba(150,255,150,0.15)"/>
+        <circle cx="340" cy="68"  r="2" fill="rgba(200,255,200,0.2)"/>
+
+        <!-- ═══ GOLD TRIM on trunk ═══ -->
+        <line x1="338" y1="130" x2="338" y2="500" stroke="rgba(212,175,55,0.08)" stroke-width="1"/>
+
+        <!-- ═══ APPLE — HTML5 (LEFT branch, red) ═══ -->
+        <g id="apple-html" class="apple-group" style="--fall-dist:450px;">
+          <!-- glow behind -->
+          <circle cx="192" cy="205" r="28" fill="rgba(229,53,53,0.25)" class="apple-glow" opacity="0.6"
+                  filter="url(#appleGlow)"/>
+          <!-- stem -->
+          <path d="M192 180 Q196 170 194 162" stroke="#5C3D28" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <!-- leaf on stem -->
+          <path d="M194 168 Q202 162 208 168 Q202 174 194 168Z" fill="#2D6A4F" opacity="0.9"/>
+          <!-- apple body -->
+          <circle cx="192" cy="205" r="26" fill="url(#appleRed)" class="apple-body"/>
+          <!-- shine -->
+          <ellipse cx="183" cy="195" rx="7" ry="5" fill="rgba(255,255,255,0.35)" transform="rotate(-20,183,195)"/>
+          <!-- label -->
+          <text x="192" y="210" text-anchor="middle" font-family="Space Grotesk,sans-serif"
+                font-size="11" font-weight="700" fill="white" opacity="0.95">HTML5</text>
+          <!-- gold ring on hover area -->
+          <circle cx="192" cy="205" r="28" fill="none" stroke="rgba(212,175,55,0)" stroke-width="2" class="apple-ring"/>
+        </g>
+
+        <!-- ═══ APPLE — CSS3 (CENTER-TOP, blue) ═══ -->
+        <g id="apple-css" class="apple-group" style="--fall-dist:390px;">
+          <circle cx="340" cy="82" r="28" fill="rgba(34,139,230,0.25)" class="apple-glow" opacity="0.6"
+                  filter="url(#appleGlow)"/>
+          <path d="M340 56 Q344 46 342 38" stroke="#5C3D28" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M342 44 Q350 38 356 44 Q350 50 342 44Z" fill="#2D6A4F" opacity="0.9"/>
+          <circle cx="340" cy="82" r="26" fill="url(#appleBlue)" class="apple-body"/>
+          <ellipse cx="331" cy="72" rx="7" ry="5" fill="rgba(255,255,255,0.35)" transform="rotate(-20,331,72)"/>
+          <text x="340" y="87" text-anchor="middle" font-family="Space Grotesk,sans-serif"
+                font-size="11" font-weight="700" fill="white" opacity="0.95">CSS3</text>
+          <circle cx="340" cy="82" r="28" fill="none" stroke="rgba(212,175,55,0)" stroke-width="2" class="apple-ring"/>
+        </g>
+
+        <!-- ═══ APPLE — JavaScript (RIGHT branch, yellow) ═══ -->
+        <g id="apple-js" class="apple-group" style="--fall-dist:450px;">
+          <circle cx="488" cy="205" r="28" fill="rgba(245,159,0,0.25)" class="apple-glow" opacity="0.6"
+                  filter="url(#appleGlow)"/>
+          <path d="M488 180 Q492 170 490 162" stroke="#5C3D28" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M490 168 Q498 162 504 168 Q498 174 490 168Z" fill="#2D6A4F" opacity="0.9"/>
+          <circle cx="488" cy="205" r="26" fill="url(#appleYellow)" class="apple-body"/>
+          <ellipse cx="479" cy="195" rx="7" ry="5" fill="rgba(255,255,255,0.35)" transform="rotate(-20,479,195)"/>
+          <text x="488" y="210" text-anchor="middle" font-family="Space Grotesk,sans-serif"
+                font-size="10" font-weight="700" fill="rgba(60,40,0,0.9)" opacity="0.95">JS</text>
+          <circle cx="488" cy="205" r="28" fill="none" stroke="rgba(212,175,55,0)" stroke-width="2" class="apple-ring"/>
+        </g>
+
+        <!-- Hint text -->
+        <text x="340" y="545" text-anchor="middle" font-family="Space Grotesk,sans-serif"
+              font-size="11" fill="rgba(212,175,55,0.45)" letter-spacing="3">點擊蘋果開始學習</text>
+
+      </svg>
+    </div><!-- /tree-svg-wrap -->
+
+    <!-- ── ROBOT TING at base ── -->
+    <div class="robot-base">
+      <div style="position:relative; display:inline-block;">
+
+        <!-- Speech bubble -->
+        <div class="robot-speech" id="robot-speech">哎喲！</div>
+
+        <!-- Hit stars -->
+        <div class="hit-stars" id="hit-stars">
+          <svg width="80" height="40" viewBox="0 0 80 40" fill="none">
+            <text x="5"  y="20" font-size="18">⭐</text>
+            <text x="30" y="10" font-size="14">✨</text>
+            <text x="55" y="22" font-size="18">⭐</text>
+          </svg>
+        </div>
+
+        <!-- Robot SVG (same as index.html but smaller) -->
+        <svg id="robot-ting" class="robot-idle"
+             width="160" height="228" viewBox="0 0 240 340" fill="none"
+             xmlns="http://www.w3.org/2000/svg"
+             style="filter: drop-shadow(0 0 18px rgba(212,175,55,0.14));">
+          <defs>
+            <linearGradient id="rGold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"   stop-color="#F5E090"/>
+              <stop offset="55%"  stop-color="#D4AF37"/>
+              <stop offset="100%" stop-color="#9A7020"/>
+            </linearGradient>
+            <linearGradient id="rBody" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#1C1C30"/>
+              <stop offset="100%" stop-color="#09091A"/>
+            </linearGradient>
+            <linearGradient id="rPlate" x1="0" y1="0" x2="0.5" y2="1">
+              <stop offset="0%"   stop-color="#252540"/>
+              <stop offset="100%" stop-color="#0E0E22"/>
+            </linearGradient>
+            <linearGradient id="rScreen" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#082838"/>
+              <stop offset="100%" stop-color="#031018"/>
+            </linearGradient>
+            <linearGradient id="rShoulder" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"   stop-color="#2A2A44"/>
+              <stop offset="100%" stop-color="#111128"/>
+            </linearGradient>
+            <radialGradient id="rEyeGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stop-color="#FFF5CC"/>
+              <stop offset="40%"  stop-color="#D4AF37"/>
+              <stop offset="100%" stop-color="#8C6000" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="rFGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <!-- LEFT ARM -->
+          <g>
+            <ellipse cx="62" cy="175" rx="14" ry="10" fill="url(#rShoulder)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+            <rect x="48" y="172" width="22" height="58" rx="11" fill="url(#rBody)" stroke="rgba(212,175,55,0.38)" stroke-width="1.2"/>
+            <rect x="53" y="180" width="12" height="24" rx="4" fill="url(#rPlate)" stroke="rgba(212,175,55,0.18)" stroke-width="0.8"/>
+            <ellipse cx="59" cy="230" rx="10" ry="7" fill="url(#rShoulder)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+            <rect x="50" y="228" width="18" height="40" rx="9" fill="url(#rBody)" stroke="rgba(212,175,55,0.32)" stroke-width="1.1"/>
+            <rect x="48" y="264" width="22" height="28" rx="11" fill="url(#rPlate)" stroke="rgba(212,175,55,0.35)" stroke-width="1"/>
+          </g>
+          <!-- RIGHT ARM -->
+          <g>
+            <ellipse cx="178" cy="175" rx="14" ry="10" fill="url(#rShoulder)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+            <rect x="170" y="172" width="22" height="58" rx="11" fill="url(#rBody)" stroke="rgba(212,175,55,0.38)" stroke-width="1.2"/>
+            <rect x="175" y="180" width="12" height="24" rx="4" fill="url(#rPlate)" stroke="rgba(212,175,55,0.18)" stroke-width="0.8"/>
+            <ellipse cx="181" cy="230" rx="10" ry="7" fill="url(#rShoulder)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+            <rect x="172" y="228" width="18" height="40" rx="9" fill="url(#rBody)" stroke="rgba(212,175,55,0.32)" stroke-width="1.1"/>
+            <rect x="170" y="264" width="22" height="28" rx="11" fill="url(#rPlate)" stroke="rgba(212,175,55,0.35)" stroke-width="1"/>
+          </g>
+          <!-- BODY -->
+          <g>
+            <rect x="68" y="160" width="104" height="110" rx="22" fill="url(#rBody)" stroke="rgba(212,175,55,0.5)" stroke-width="1.5"/>
+            <path d="M68 170 Q78 155 100 160 L68 175Z" fill="url(#rShoulder)" stroke="rgba(212,175,55,0.3)" stroke-width="1"/>
+            <path d="M172 170 Q162 155 140 160 L172 175Z" fill="url(#rShoulder)" stroke="rgba(212,175,55,0.3)" stroke-width="1"/>
+            <rect x="80" y="172" width="80" height="64" rx="14" fill="url(#rScreen)" stroke="rgba(212,175,55,0.32)" stroke-width="1"/>
+            <text x="120" y="217" text-anchor="middle" font-family="Space Grotesk,sans-serif"
+                  font-size="40" font-weight="800" fill="url(#rGold)" opacity="0.82">T</text>
+            <rect x="90" y="244" width="60" height="7" rx="3.5" fill="rgba(12,12,24,0.9)" stroke="rgba(212,175,55,0.25)" stroke-width="0.8"/>
+            <rect x="90" y="244" width="60" height="7" rx="3.5" fill="rgba(212,175,55,0.35)">
+              <animate attributeName="width" values="60;40;55;30;60" dur="3s" repeatCount="indefinite"/>
+            </rect>
+            <rect x="72" y="264" width="96" height="12" rx="6" fill="url(#rShoulder)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+            <rect x="84" y="274" width="72" height="16" rx="8" fill="url(#rBody)" stroke="rgba(212,175,55,0.32)" stroke-width="1"/>
+            <!-- LEFT LEG -->
+            <rect x="82" y="288" width="32" height="72" rx="16" fill="url(#rBody)" stroke="rgba(212,175,55,0.38)" stroke-width="1.3"/>
+            <ellipse cx="98" cy="330" rx="13" ry="8" fill="url(#rShoulder)" stroke="rgba(212,175,55,0.35)" stroke-width="1"/>
+            <rect x="86" y="328" width="24" height="34" rx="12" fill="url(#rBody)" stroke="rgba(212,175,55,0.3)" stroke-width="1"/>
+            <rect x="78" y="355" width="40" height="18" rx="9" fill="url(#rPlate)" stroke="rgba(212,175,55,0.35)" stroke-width="1"/>
+            <!-- RIGHT LEG -->
+            <rect x="126" y="288" width="32" height="72" rx="16" fill="url(#rBody)" stroke="rgba(212,175,55,0.38)" stroke-width="1.3"/>
+            <ellipse cx="142" cy="330" rx="13" ry="8" fill="url(#rShoulder)" stroke="rgba(212,175,55,0.35)" stroke-width="1"/>
+            <rect x="130" y="328" width="24" height="34" rx="12" fill="url(#rBody)" stroke="rgba(212,175,55,0.3)" stroke-width="1"/>
+            <rect x="122" y="355" width="40" height="18" rx="9" fill="url(#rPlate)" stroke="rgba(212,175,55,0.35)" stroke-width="1"/>
+          </g>
+          <!-- HEAD -->
+          <g>
+            <rect x="108" y="138" width="24" height="24" rx="6" fill="url(#rBody)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+            <rect x="114" y="15" width="12" height="24" rx="4" fill="url(#rBody)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+            <line x1="120" y1="15" x2="120" y2="3" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="120" cy="3" r="5" fill="url(#rEyeGlow)" filter="url(#rFGlow)"/>
+            <circle cx="120" cy="3" r="9" fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.3">
+              <animate attributeName="r" values="6;14;6" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <rect x="72" y="28" width="96" height="82" rx="22" fill="url(#rBody)" stroke="rgba(212,175,55,0.55)" stroke-width="1.5"/>
+            <rect x="60" y="44" width="16" height="36" rx="8" fill="url(#rPlate)" stroke="rgba(212,175,55,0.38)" stroke-width="1"/>
+            <rect x="164" y="44" width="16" height="36" rx="8" fill="url(#rPlate)" stroke="rgba(212,175,55,0.38)" stroke-width="1"/>
+            <rect x="80" y="38" width="80" height="58" rx="14" fill="url(#rScreen)" stroke="rgba(212,175,55,0.45)" stroke-width="1.2"/>
+            <!-- Eyes -->
+            <circle cx="101" cy="67" r="11" fill="rgba(8,20,32,0.9)" stroke="rgba(212,175,55,0.5)" stroke-width="1.2"/>
+            <circle cx="101" cy="67" r="8" fill="url(#rEyeGlow)" filter="url(#rFGlow)">
+              <animate attributeName="r" values="7.5;9;7.5" dur="2.8s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="101" cy="67" r="4" fill="#FFF5CC"/>
+            <circle cx="139" cy="67" r="11" fill="rgba(8,20,32,0.9)" stroke="rgba(212,175,55,0.5)" stroke-width="1.2"/>
+            <circle cx="139" cy="67" r="8" fill="url(#rEyeGlow)" filter="url(#rFGlow)">
+              <animate attributeName="r" values="7.5;9;7.5" dur="2.8s" begin="0.3s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="139" cy="67" r="4" fill="#FFF5CC"/>
+            <!-- Brows -->
+            <line x1="85" y1="46" x2="112" y2="50" stroke="rgba(212,175,55,0.35)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="128" y1="50" x2="155" y2="46" stroke="rgba(212,175,55,0.35)" stroke-width="2" stroke-linecap="round"/>
+            <!-- Mouth -->
+            <rect x="92" y="90" width="56" height="8" rx="4" fill="rgba(8,12,24,0.9)" stroke="rgba(212,175,55,0.28)" stroke-width="1"/>
+            <rect x="94" y="91.5" width="52" height="5" rx="2.5" fill="rgba(212,175,55,0.6)">
+              <animate attributeName="width" values="52;35;48;20;52" dur="2.2s" repeatCount="indefinite"/>
+            </rect>
+          </g>
+        </svg>
+
+      </div>
+    </div><!-- /robot-base -->
+
+  </div><!-- /tree-scene -->
+
+</main>
+
+<footer class="footer">
+  <p>© 2025 Ting · All Rights Reserved</p>
+</footer>
+
+<script src="skills.js"></script>
+</body>
+</html>

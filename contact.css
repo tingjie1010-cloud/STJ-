@@ -1,0 +1,234 @@
+/* ----------------------------------------------
+   極簡美學 · 純黑背景 · 白灰文字 · 無多餘光暈
+   照片尺寸已縮小並維持正圓
+------------------------------------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #000000;
+    color: #FFFFFF;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+/* ---------- 毛玻璃導覽列 ---------- */
+.glass-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1.2rem 2rem;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #FFFFFF;
+    text-decoration: none;
+    letter-spacing: -0.02em;
+    transition: opacity 0.2s;
+}
+
+.nav-logo:hover {
+    opacity: 0.7;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-btn {
+    color: #FFFFFF;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 400;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.nav-btn:hover {
+    opacity: 1;
+}
+
+/* ---------- 主內容區：兩欄居中 ---------- */
+.contact-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 2rem 80px;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+}
+
+/* 左欄：縮小版的圓形大頭貼 + 社群圖標 */
+.contact-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.8rem;
+}
+
+/* 照片容器：尺寸縮小為 180x180，保持正圓 */
+.avatar-wrapper {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 10px 25px -8px rgba(0, 0, 0, 0.4);
+}
+
+.avatar-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.social-links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.social-links a {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+    color: #FFFFFF;
+}
+
+.social-links a:hover {
+    opacity: 1;
+}
+
+.social-links svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* 右欄：文字內容 */
+.contact-right {
+    text-align: left;
+}
+
+.section-label {
+    font-size: 0.75rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #888888;
+    margin-bottom: 1rem;
+}
+
+.contact-right h2 {
+    font-size: 2.8rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    color: #FFFFFF;
+}
+
+.bio-text {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #AAAAAA;
+    max-width: 90%;
+    margin-bottom: 2rem;
+}
+
+/* 金色三詞 */
+.golden-words {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.golden-words span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #D4AF37;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+/* ---------- 響應式設計 (手機版上下堆疊) ---------- */
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0 0.5rem;
+    }
+    .nav-links {
+        gap: 1rem;
+    }
+    .nav-btn {
+        font-size: 0.8rem;
+    }
+    .container {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        text-align: center;
+    }
+    .contact-right {
+        text-align: center;
+    }
+    .bio-text {
+        max-width: 100%;
+        margin: 0 auto 1.5rem;
+    }
+    .golden-words {
+        justify-content: center;
+        gap: 1.5rem;
+    }
+    /* 手機版照片再縮小一點 */
+    .avatar-wrapper {
+        width: 140px;
+        height: 140px;
+    }
+    .contact-right h2 {
+        font-size: 2rem;
+    }
+    .section-label {
+        letter-spacing: 3px;
+    }
+}
+
+@media (max-width: 480px) {
+    .contact-section {
+        padding: 100px 1.5rem 60px;
+    }
+    .avatar-wrapper {
+        width: 120px;
+        height: 120px;
+    }
+    .bio-text {
+        font-size: 0.95rem;
+    }
+    .golden-words span {
+        font-size: 1rem;
+    }
+}

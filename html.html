@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Ting | HTML5 基礎教學（世界上最清楚的版本）</title>
+    <meta name="description" content="HTML5 完整基礎教學 — 從零開始，讓每個人都能輕鬆做出網頁。">
+    <meta name="author" content="Ting">
+    
+    <!-- Favicon: 圓形 STJ 頭像 -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19.5' fill='%23FFFFFF' stroke='%23E0E0E0' stroke-width='0.5'/%3E%3Ctext x='20' y='25' text-anchor='middle' font-family='Georgia, Times New Roman, serif' font-size='18' font-weight='500' fill='%23000000'%3ESTJ%3C/text%3E%3C/svg%3E">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #04040C;
+            font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+            color: #EDEDF0;
+            line-height: 1.5;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 背景金色拋物線畫布 */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            background-image: linear-gradient(rgba(212, 175, 55, 0.025) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(212, 175, 55, 0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            background: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 40%, rgba(4, 4, 12, 0.85) 100%);
+        }
+
+        /* 毛玻璃導覽列 */
+        .glass-nav {
+            position: fixed;
+            top: 20px;
+            left: 5%;
+            right: 5%;
+            background: rgba(8, 8, 18, 0.6);
+            backdrop-filter: blur(20px) saturate(1.4);
+            border-radius: 70px;
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: navSlide 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes navSlide {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.7rem 2rem;
+        }
+
+        .nav-logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF, #D4AF37);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            color: #D4AF37;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .back-btn:hover {
+            background: rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* 主內容容器 */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 130px 20px 80px;
+        }
+
+        /* 標題區 */
+        .title-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .section-tag {
+            font-size: 0.75rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: #D4AF37;
+        }
+        .main-title {
+            font-size: clamp(2.8rem, 12vw, 4.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF, #D4AF37);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin: 0.5rem 0;
+        }
+        .sub-title {
+            font-size: 1.2rem;
+            color: #888898;
+        }
+
+        /* 示意圖片區 */
+        .image-showcase {
+            max-width: 900px;
+            margin: 2rem auto;
+            border-radius: 28px;
+            background: rgba(12, 12, 22, 0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            overflow: hidden;
+            text-align: center;
+        }
+        .image-showcase img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 章節卡片 */
+        .cards-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .topic-card {
+            background: rgba(12, 12, 22, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            padding: 1.8rem;
+            transition: all 0.3s;
+        }
+        .topic-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(212, 175, 55, 0.6);
+            box-shadow: 0 15px 25px -12px rgba(0, 0, 0, 0.5);
+        }
+        .topic-card h3 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: #D4AF37;
+            margin-bottom: 0.8rem;
+        }
+        .code-block {
+            background: rgba(4, 4, 14, 0.9);
+            border-left: 3px solid #D4AF37;
+            padding: 1rem;
+            border-radius: 16px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            color: #EDEDF0;
+        }
+        .tag { color: #7dd3fc; }
+        .attr { color: #fde047; }
+        .value { color: #86efac; }
+        .keyword { color: #D4AF37; font-weight: 500; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        th, td {
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 0.6rem;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        th {
+            background: rgba(212, 175, 55, 0.1);
+            color: #D4AF37;
+        }
+        .practice-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+        .practice-list li {
+            margin-bottom: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .practice-list input {
+            width: 18px;
+            height: 18px;
+            accent-color: #D4AF37;
+        }
+
+        /* 影片教學連結 */
+        .video-section {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: rgba(12, 12, 22, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .video-section h3 {
+            font-size: 1.6rem;
+            color: #D4AF37;
+        }
+        .ig-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(212, 175, 55, 0.15);
+            padding: 0.8rem 1.8rem;
+            border-radius: 60px;
+            text-decoration: none;
+            color: #D4AF37;
+            margin-top: 1rem;
+            transition: 0.2s;
+        }
+        .ig-link:hover {
+            background: rgba(212, 175, 55, 0.3);
+            transform: translateY(-3px);
+        }
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(212, 175, 55, 0.12);
+            font-size: 0.7rem;
+            color: #383848;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding-top: 100px; }
+            .topic-card h3 { font-size: 1.4rem; }
+            .code-block { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="vignette"></div>
+
+<header>
+    <nav class="glass-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">Ting.</a>
+            <a href="skills.html" class="back-btn">← 返回技能樹</a>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="title-section">
+        <div class="section-tag">— 世界上最好懂的 HTML5 教學</div>
+        <h1 class="main-title">HTML5</h1>
+        <div class="sub-title">從零開始 · 每個人都能輕鬆做出網頁</div>
+    </div>
+
+    <!-- 示意圖片（穩定外連） -->
+    <div class="image-showcase">
+        <img src="https://picsum.photos/id/0/900/400" alt="HTML5 教學示意圖 – 網頁結構">
+    </div>
+
+    <div class="cards-grid">
+        <!-- 1. 什麼是 HTML？ -->
+        <div class="topic-card">
+            <h3>📄 1. 什麼是 HTML？</h3>
+            <p><span class="keyword">HTML</span> 全名「超文本標記語言」，它是網頁的「骨架」。就像蓋房子需要鋼筋水泥，HTML 負責把文字、圖片、按鈕全部放在正確的位置。</p>
+            <p>🎯 一個簡單的比喻：網頁是一本圖畫書，<strong>HTML</strong> 是紙張和頁碼，<strong>CSS</strong> 是著色與排版，<strong>JavaScript</strong> 是翻頁後的音效與互動。</p>
+            <p>👉 學習 HTML 其實就是在學「<span class="tag">&lt;標籤&gt;</span>」，瀏覽器看到標籤就知道該怎麼顯示內容。</p>
+        </div>
+
+        <!-- 2. 網頁的基本骨架 -->
+        <div class="topic-card">
+            <h3>🏗️ 2. 每個網頁都有的「骨架」</h3>
+            <p>一個標準的 HTML 文件長這樣，就像人體有頭、身體、腳：</p>
+            <div class="code-block">
+                <code>
+                    <span class="tag">&lt;!DOCTYPE html&gt;</span>   ← 宣告這是 HTML5<br>
+                    <span class="tag">&lt;html&gt;</span>               ← 整份網頁的根<br>
+                    &nbsp;&nbsp;<span class="tag">&lt;head&gt;</span>             ← 頭部（放標題、樣式設定）<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;title&gt;</span>我的第一個網頁<span class="tag">&lt;/title&gt;</span><br>
+                    &nbsp;&nbsp;<span class="tag">&lt;/head&gt;</span><br>
+                    &nbsp;&nbsp;<span class="tag">&lt;body&gt;</span>             ← 身體（所有看得到的內容）<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h1&gt;</span>哈囉！世界！<span class="tag">&lt;/h1&gt;</span><br>
+                    &nbsp;&nbsp;<span class="tag">&lt;/body&gt;</span><br>
+                    <span class="tag">&lt;/html&gt;</span>
+                </code>
+            </div>
+            <p>✏️ 只要把這段複製到記事本，存成 <code>index.html</code>，用瀏覽器打開就會看到「哈囉！世界！」的大標題。</p>
+        </div>
+
+        <!-- 3. 常用標籤大全（表格） -->
+        <div class="topic-card">
+            <h3>🏷️ 3. 常用標籤大全（像樂高積木）</h3>
+            <p>學會這些標籤，你已經可以做出 80% 的靜態網頁：</p>
+            <table>
+                <thead>
+                    <tr><th>標籤</th><th>用途</th><th>範例</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="tag">&lt;h1&gt;</span> ~ <span class="tag">&lt;h6&gt;</span></td><td>標題（由大到小）</td><td><span class="tag">&lt;h1&gt;</span>大標題<span class="tag">&lt;/h1&gt;</span></td></tr>
+                    <tr><td><span class="tag">&lt;p&gt;</span></td><td>段落文字</td><td><span class="tag">&lt;p&gt;</span>這是一段文字...<span class="tag">&lt;/p&gt;</span></td></tr>
+                    <tr><td><span class="tag">&lt;a&gt;</span></td><td>超連結</td><td><span class="tag">&lt;a</span> <span class="attr">href</span>=<span class="value">"https://google.com"</span><span class="tag">&gt;</span>點我去Google<span class="tag">&lt;/a&gt;</span></td></tr>
+                    <tr><td><span class="tag">&lt;img&gt;</span></td><td>插入圖片</td><td><span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="value">"photo.jpg"</span> <span class="attr">alt</span>=<span class="value">"描述"</span><span class="tag">&gt;</span></td></tr>
+                    <tr><td><span class="tag">&lt;div&gt;</span></td><td>區塊容器（用來分組）</td><td><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="value">"box"</span><span class="tag">&gt;</span>內容<span class="tag">&lt;/div&gt;</span></td></tr>
+                    <tr><td><span class="tag">&lt;span&gt;</span></td><td>行內容器</td><td><span class="tag">&lt;span</span> <span class="attr">style</span>=<span class="value">"color:gold"</span><span class="tag">&gt;</span>金色字<span class="tag">&lt;/span&gt;</span></td></tr>
+                </tbody>
+            </table>
+            <div class="code-block">
+                <code>
+                    <span class="tag">&lt;!-- 這是註解，不會顯示在網頁上，只給寫程式的人看 --&gt;</span>
+                </code>
+            </div>
+        </div>
+
+        <!-- 4. HTML5 新語意標籤 -->
+        <div class="topic-card">
+            <h3>🧩 4. HTML5 新語意標籤（讓網頁結構一目了然）</h3>
+            <p>過去大家習慣用一堆 <span class="tag">&lt;div&gt;</span>，HTML5 新增了更直覺的標籤：</p>
+            <ul style="margin-left: 1.5rem;">
+                <li><span class="keyword">&lt;header&gt;</span> — 頁首（通常放標題、導覽）</li>
+                <li><span class="keyword">&lt;nav&gt;</span> — 導覽列選單</li>
+                <li><span class="keyword">&lt;main&gt;</span> — 主要內容區域（整頁最重要）</li>
+                <li><span class="keyword">&lt;section&gt;</span> — 章節區塊</li>
+                <li><span class="keyword">&lt;article&gt;</span> — 獨立的文章／內容</li>
+                <li><span class="keyword">&lt;aside&gt;</span> — 側邊欄</li>
+                <li><span class="keyword">&lt;footer&gt;</span> — 頁尾（版權、聯絡方式）</li>
+            </ul>
+            <div class="code-block">
+                <code>
+                    <span class="tag">&lt;body&gt;</span><br>
+                    &nbsp;&nbsp;<span class="tag">&lt;header&gt;</span>我的網站標題<span class="tag">&lt;/header&gt;</span><br>
+                    &nbsp;&nbsp;<span class="tag">&lt;nav&gt;</span><span class="tag">&lt;a&gt;</span>首頁<span class="tag">&lt;/a&gt;</span> <span class="tag">&lt;a&gt;</span>關於<span class="tag">&lt;/a&gt;</span><span class="tag">&lt;/nav&gt;</span><br>
+                    &nbsp;&nbsp;<span class="tag">&lt;main&gt;</span><span class="tag">&lt;article&gt;</span>文章內容...<span class="tag">&lt;/article&gt;</span><span class="tag">&lt;/main&gt;</span><br>
+                    &nbsp;&nbsp;<span class="tag">&lt;footer&gt;</span>© 2025 Ting<span class="tag">&lt;/footer&gt;</span><br>
+                    <span class="tag">&lt;/body&gt;</span>
+                </code>
+            </div>
+            <p>🔍 搜尋引擎會優先看懂這些語意標籤，對 SEO 很有幫助。</p>
+        </div>
+
+        <!-- 5. 表單元素（如何讓使用者輸入資料） -->
+        <div class="topic-card">
+            <h3>📝 5. 表單 — 讓網頁可以問問題、收集資料</h3>
+            <p>你想做「聯絡我們」或「登入頁面」嗎？就用表單：</p>
+            <div class="code-block">
+                <code>
+                    <span class="tag">&lt;form</span> <span class="attr">action</span>=<span class="value">"/submit"</span> <span class="attr">method</span>=<span class="value">"post"</span><span class="tag">&gt;</span><br>
+                    &nbsp;&nbsp;<span class="tag">&lt;label&gt;</span>姓名：<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="value">"text"</span> <span class="attr">name</span>=<span class="value">"name"</span><span class="tag">&gt;&lt;/label&gt;</span><br>
+                    &nbsp;&nbsp;<span class="tag">&lt;label&gt;</span>電子郵件：<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="value">"email"</span> <span class="attr">name</span>=<span class="value">"email"</span><span class="tag">&gt;&lt;/label&gt;</span><br>
+                    &nbsp;&nbsp;<span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="value">"submit"</span><span class="tag">&gt;</span>送出<span class="tag">&lt;/button&gt;</span><br>
+                    <span class="tag">&lt;/form&gt;</span>
+                </code>
+            </div>
+            <p>✅ 常用輸入類型：<code>text</code>（文字）、<code>email</code>（電子信箱）、<code>number</code>（數字）、<code>radio</code>（單選）、<code>checkbox</code>（複選）。</p>
+        </div>
+
+        <!-- 6. 自我檢測 + 實作練習 -->
+        <div class="topic-card">
+            <h3>✅ 6. 你學會了嗎？動手勾選＋試試看</h3>
+            <ul class="practice-list">
+                <li><input type="checkbox"> 我知道 HTML 是網頁的骨架，是用標籤組成的。</li>
+                <li><input type="checkbox"> 我能寫出 <span class="tag">&lt;!DOCTYPE html&gt;</span>、<span class="tag">&lt;html&gt;</span>、<span class="tag">&lt;head&gt;</span>、<span class="tag">&lt;body&gt;</span> 的基本結構。</li>
+                <li><input type="checkbox"> 我會用 <span class="tag">&lt;h1&gt;</span>、<span class="tag">&lt;p&gt;</span>、<span class="tag">&lt;a&gt;</span>、<span class="tag">&lt;img&gt;</span>、<span class="tag">&lt;div&gt;</span> 做出簡單網頁。</li>
+                <li><input type="checkbox"> 我知道 <span class="tag">&lt;header&gt;</span>、<span class="tag">&lt;nav&gt;</span>、<span class="tag">&lt;main&gt;</span>、<span class="tag">&lt;footer&gt;</span> 的用途。</li>
+                <li><input type="checkbox"> 我會做一個簡單的表單（輸入框 + 按鈕）。</li>
+                <li><input type="checkbox"> 我能自己寫出一個自我介紹的網頁（至少包含標題、一段自我介紹、一張圖片、一個超連結）。</li>
+            </ul>
+            <p>🎉 勾選完前三項，你已經贏過 80% 的初學者！全部勾選後，你已經具備獨立製作靜態網站的能力。</p>
+            <div class="code-block" style="margin-top: 1rem;">
+                💡 小挑戰：試著修改上面的範例，把「我的第一個網頁」改成你自己的名字，看看瀏覽器標題會不會改變。
+            </div>
+        </div>
+    </div>
+
+    <!-- 更詳細影片教學（Instagram） -->
+    <div class="video-section">
+        <h3>📺 更詳細的影片教學</h3>
+        <p>想看手把手實際操作？追蹤我的 Instagram，每週更新程式教學短影片。</p>
+        <a href="https://www.instagram.com/stj_engineer?igsh=MW53aTFsZ2VmeTFiZw==" target="_blank" rel="noopener noreferrer" class="ig-link">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.248.637.415 1.363.465 2.428.05 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.217 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.248-1.363.415-2.428.465-1.066.05-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.217-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.01 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.065.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.902 4.902 0 0 1 5.45 2.525c.637-.248 1.363-.415 2.428-.465C8.944 2.01 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/>
+            </svg>
+            @stj_engineer
+        </a>
+    </div>
+</main>
+
+<footer class="footer">
+    <p>© 2025 Ting · 從程式碼到球場，一致的行動力</p>
+</footer>
+
+<script>
+    // 背景金色籃球拋物線動畫
+    (function() {
+        const canvas = document.getElementById('bg-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        const TRAJS = [
+            { sx:0.08, sy:0.88, ex:0.92, ey:0.72, apex:0.24, col:'rgba(212,175,55,0.18)' },
+            { sx:0.18, sy:0.92, ex:0.82, ey:0.52, apex:0.20, col:'rgba(212,175,55,0.20)' },
+            { sx:0.72, sy:0.78, ex:0.18, ey:0.88, apex:0.28, col:'rgba(212,175,55,0.14)' },
+            { sx:0.48, sy:0.96, ex:0.52, ey:0.62, apex:0.14, col:'rgba(230,200,100,0.16)' }
+        ];
+        class Dot {
+            constructor(idx, t = Math.random(), spd = 0.002 + Math.random() * 0.003) {
+                this.idx = idx; this.t = t; this.spd = spd;
+            }
+            update() { this.t += this.spd; if (this.t > 1) this.t = 0; }
+            pos() {
+                const tr = TRAJS[this.idx];
+                const x1 = tr.sx * width, y1 = tr.sy * height;
+                const x2 = tr.ex * width, y2 = tr.ey * height;
+                const apexY = tr.apex * height;
+                const mx = (x1 + x2) / 2;
+                const my = Math.min(y1, y2) - apexY;
+                const mt = 1 - this.t, t = this.t;
+                return { x: mt*mt*x1 + 2*mt*t*mx + t*t*x2, y: mt*mt*y1 + 2*mt*t*my + t*t*y2 };
+            }
+            draw() {
+                const {x, y} = this.pos();
+                ctx.beginPath(); ctx.arc(x, y, 3.2, 0, Math.PI*2);
+                ctx.fillStyle = '#D4AF37'; ctx.shadowBlur = 12; ctx.shadowColor = 'rgba(212,175,55,0.8)';
+                ctx.fill(); ctx.shadowBlur = 0;
+            }
+        }
+        let dots = [];
+        function init() {
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width; canvas.height = height;
+            dots = [];
+            for (let i = 0; i < TRAJS.length; i++) {
+                dots.push(new Dot(i, Math.random() * 0.8, 0.002 + Math.random() * 0.002));
+                if (i < 2) dots.push(new Dot(i, Math.random(), 0.0018));
+            }
+        }
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            TRAJS.forEach(tr => {
+                const x1 = tr.sx * width, y1 = tr.sy * height;
+                const x2 = tr.ex * width, y2 = tr.ey * height;
+                const apex = tr.apex * height;
+                const mx = (x1 + x2) / 2;
+                const my = Math.min(y1, y2) - apex;
+                ctx.beginPath(); ctx.moveTo(x1, y1);
+                for (let t = 0; t <= 1; t += 0.018) {
+                    const mt = 1 - t;
+                    ctx.lineTo(mt*mt*x1 + 2*mt*t*mx + t*t*x2, mt*mt*y1 + 2*mt*t*my + t*t*y2);
+                }
+                ctx.strokeStyle = tr.col; ctx.lineWidth = 1.3; ctx.shadowBlur = 3;
+                ctx.shadowColor = 'rgba(212,175,55,0.4)'; ctx.stroke();
+            });
+            ctx.shadowBlur = 0;
+            dots.forEach(d => { d.update(); d.draw(); });
+            requestAnimationFrame(draw);
+        }
+        window.addEventListener('resize', () => { init(); });
+        init(); draw();
+    })();
+</script>
+</body>
+</html>
