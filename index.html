@@ -5,48 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Ting | 數位應用與網頁開發者</title>
 <meta name="description" content="Ting 的個人形象官網 — 數位應用與網頁開發者，你的數位管家。">
+<meta property="og:title" content="Ting | 數位應用與網頁開發者">
+<meta property="og:description" content="數位管家已就位 — 網頁開發、UI/UX 設計、前端工程">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#04040C">
+<meta name="color-scheme" content="dark">
 
 <!-- Favicon: 圓形 STJ 頭像 -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19.5' fill='%23FFFFFF' stroke='%23E0E0E0' stroke-width='0.5'/%3E%3Ctext x='20' y='25' text-anchor='middle' font-family='Georgia, Times New Roman, serif' font-size='18' font-weight='500' fill='%23000000'%3ESTJ%3C/text%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
-<!-- Background layers -->
+<!-- ════════════════════════════════════════════
+     背景層
+     - 手機：弧線軌跡 + 光點動畫（主視覺背景）
+     - 桌面：被 three-canvas 完全遮蓋，JS 不會啟動此迴圈
+═══════════════════════════════════════════════ -->
 <canvas id="bg-canvas"></canvas>
 <div class="grid-overlay"></div>
 <div class="vignette"></div>
 
-<!-- NAV -->
-<header>
-  <nav class="glass-nav">
-    <div class="nav-container">
-      <a href="#" class="nav-logo">Ting.</a>
-      <div class="nav-right">
-        <div class="status-pill">
-          <div class="status-dot"></div>
-          <span>管家上線</span>
-        </div>
-        <div class="hamburger" id="hamburgerBtn">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-    </div>
-    <div class="hamburger-menu" id="hamburgerMenu">
-      <a href="contact.html">✉️ 聯絡我</a>
-      <a href="about.html">👤 關於我</a>
-      <a href="portfolio.html">💼 作品集</a>
-      <a href="skills.html">⚡ 技能</a>
-      <a href="eco.html">📝 服務</a>
-    </div>
-  </nav>
-</header>
+<!-- ════════════════════════════════════════════
+     桌面版 3D 個人空間（手機完全不建立 WebGL context）
+═══════════════════════════════════════════════ -->
+<canvas id="three-canvas"></canvas>
 
-<main>
+<!-- ════════════════════════════════════════════
+     手機版主視覺：機器人 + 拋擲動畫
+═══════════════════════════════════════════════ -->
+<main id="mobileHero">
 <section class="hero">
 
   <div class="robot-stage" id="robotStage">
@@ -73,9 +66,8 @@
     <div class="robot-wrap" id="robotWrap">
       <div class="robot-inner">
         <div style="position:relative; display:inline-block;">
-          <div class="speech-bubble">你好，我是 Ting ⚡</div>
-          <!-- 此處為原本完整的 SVG 內容（與原檔案相同，因篇幅保留完整） -->
-          <svg id="robotSVG" width="240" height="340" viewBox="0 0 240 340" fill="none" xmlns="http://www.w3.org/2000/svg"
+          <div class="speech-bubble" id="speechBubble">你好，我是 Ting ⚡</div>
+          <svg id="robotSVG" width="240" height="340" viewBox="0 0 240 340" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ting 的機器人助手形象"
                style="filter: drop-shadow(0 0 25px rgba(212,175,55,0.18)) drop-shadow(0 4px 40px rgba(0,0,0,0.5));">
             <defs>
               <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1">
@@ -245,10 +237,77 @@
   <div class="scroll-hint"><span>Scroll</span><div class="scroll-line"></div></div>
 
 </section>
-</main>
 
 <footer class="footer"><p>© 2025 Ting · All Rights Reserved</p></footer>
+</main>
 
-<script src="index.js"></script>
+<!-- ════════════════════════════════════════════
+     桌面版專用元件：玻璃擬態彈窗、WASD 提示、場景標籤
+═══════════════════════════════════════════════ -->
+<div class="room-modal" id="roomModal">
+  <div class="room-modal__backdrop" id="modalBackdrop"></div>
+  <div class="room-modal__panel">
+    <button class="room-modal__close" id="modalClose" aria-label="關閉">✕</button>
+    <div class="room-modal__icon" id="modalIcon">💼</div>
+    <h2 class="room-modal__title" id="modalTitle">作品集</h2>
+    <p class="room-modal__desc" id="modalDesc">探索 Ting 的數位設計與開發作品。</p>
+    <div class="room-modal__actions">
+      <a class="room-modal__btn" id="modalLink" href="portfolio.html">前往頁面 →</a>
+    </div>
+    <p class="room-modal__hint">按 ESC 或點擊背景關閉</p>
+  </div>
+</div>
+
+<div class="wasd-hint" id="wasdHint">
+  <div class="wasd-hint__inner">
+    <span class="wasd-key">W</span>
+    <div class="wasd-row">
+      <span class="wasd-key">A</span>
+      <span class="wasd-key">S</span>
+      <span class="wasd-key">D</span>
+    </div>
+    <span class="wasd-label">探索世界</span>
+  </div>
+  <div class="wasd-hint__inner wasd-hint__mouse">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <rect x="3" y="2" width="12" height="16" rx="6" stroke="rgba(212,175,55,0.7)" stroke-width="1.2"/>
+      <line x1="9" y1="2" x2="9" y2="9" stroke="rgba(212,175,55,0.7)" stroke-width="1.2"/>
+    </svg>
+    <span class="wasd-label">點擊物件互動</span>
+  </div>
+</div>
+
+<div class="scene-label" id="sceneLabel">
+  <span>3D 個人空間</span>
+  <span class="scene-label__sub">點擊場景物件以探索各頁面 · WASD 自由走動</span>
+</div>
+
+<!-- NAV（手機 / 桌面共用） -->
+<header>
+  <nav class="glass-nav">
+    <div class="nav-container">
+      <a href="#" class="nav-logo">Ting.</a>
+      <div class="nav-right">
+        <div class="status-pill">
+          <div class="status-dot"></div>
+          <span>管家上線</span>
+        </div>
+        <div class="hamburger" id="hamburgerBtn" role="button" aria-expanded="false" aria-label="開啟選單" tabindex="0">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+    <div class="hamburger-menu" id="hamburgerMenu">
+      <a href="contact.html">✉️ 聯絡我</a>
+      <a href="about.html">👤 關於我</a>
+      <a href="portfolio.html">💼 作品集</a>
+      <a href="skills.html">⚡ 技能</a>
+      <a href="eco.html">📝 服務</a>
+    </div>
+  </nav>
+</header>
+
+<!-- index.js 依裝置類型決定是否動態載入 three.js（手機完全不下載/不執行） -->
+<script src="index.js" defer></script>
 </body>
 </html>
