@@ -1,8 +1,8 @@
 /* ═══════════════════════════════════════════════════════════
    裝置偵測 & 模式切換（最優先執行，避免 FOUC / 資源浪費）
-   - 手機 (< 768px)：完全不載入 three.js，執行機器人 + 拋擲動畫
+   - 手機 (< 1024px)：完全不載入 three.js，執行機器人 + 拋擲動畫
      + 2D 背景弧線，省電不發燙。
-   - 桌面 (>= 768px) 且支援 WebGL：動態載入 three.js，
+   - 桌面 (>= 1024px) 且支援 WebGL：動態載入 three.js，
      進入 3D 個人空間 + WASD 自由走動，隱藏機器人。
    - 桌面但不支援 WebGL：退回機器人 + 拋擲動畫（與手機相同）。
 ═══════════════════════════════════════════════════════════ */
@@ -135,6 +135,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
   }
 
   let timers = [];
+  let sequenceDone = false;
   function clearTimers() { timers.forEach(clearTimeout); timers = []; }
 
   function runThrowSequence() {
@@ -158,13 +159,19 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
           arm.classList.remove('throwing');
           arm.style.animation = 'armIdleR 4s ease-in-out 0s infinite';
         }
+        sequenceDone = true;
       }, 2200));
     }, 2000));
   }
 
-  /* 分頁不可見時暫停計時器，避免回到分頁時動畫一次性疊加觸發 */
+  /* 分頁不可見時暫停計時器；回到分頁時若序列尚未播完，重新啟動，
+     避免按鈕卡在拋出前的隱藏狀態 */
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) clearTimers();
+    if (document.hidden) {
+      clearTimers();
+    } else if (!sequenceDone) {
+      runThrowSequence();
+    }
   });
 
   runThrowSequence();
@@ -172,6 +179,8 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
 
 /* ═══════════════════════════════════════════════════════════
    漢堡選單互動（手機 / 桌面共用）
+   - btn 為原生 <button>，瀏覽器已原生處理 Enter/Space → click，
+     這裡只需額外處理 Escape 鍵關閉選單，避免重複觸發 toggleMenu。
 ═══════════════════════════════════════════════════════════ */
 (function () {
   const btn  = document.getElementById('hamburgerBtn');
@@ -187,7 +196,6 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     toggleMenu(!btn.classList.contains('active'));
   });
   btn.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(!btn.classList.contains('active')); }
     if (e.key === 'Escape') toggleMenu(false);
   });
   document.addEventListener('click', e => {
@@ -199,6 +207,8 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
 
 /* ═══════════════════════════════════════════════════════════
    Speech Bubble 輪播（手機版機器人對話）
+   - 改用 CSS class 切換（visible/fading），避免直接覆寫 inline style
+   - 分頁不可見時暫停 interval，回到分頁時不補播
 ═══════════════════════════════════════════════════════════ */
 (function () {
   if (USE_3D) return;
@@ -212,23 +222,43 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     'UI/UX ・ Three.js ・ Web',
   ];
   let idx = 0;
+  let intervalId = null;
 
   function nextLine() {
-    bubble.style.opacity = '0';
-    bubble.style.transform = 'scale(0.9) translateY(4px)';
+    bubble.classList.add('fading');
     setTimeout(() => {
       idx = (idx + 1) % lines.length;
       bubble.textContent = lines[idx];
-      bubble.style.opacity = '1';
-      bubble.style.transform = 'scale(1) translateY(0)';
+      bubble.classList.remove('fading');
     }, 280);
   }
 
-  // 首次顯示後每 3.5s 切換
-  setTimeout(() => {
-    bubble.style.transition = 'opacity 0.28s ease, transform 0.28s cubic-bezier(0.22,1,0.36,1)';
-    setInterval(nextLine, 3500);
-  }, 4000);
+  function startCarousel() {
+    if (intervalId !== null) return;
+    intervalId = setInterval(nextLine, 3500);
+  }
+  function stopCarousel() {
+    if (intervalId === null) return;
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+
+  // 首次顯示（CSS 動畫 bubbleIn 約於 2.1s 開始）後，於 4s 啟動輪播
+  const initTimer = setTimeout(startCarousel, 4000);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopCarousel();
+    } else if (idx > 0 || performance.now() > 4000) {
+      // 僅在初始顯示已過後才恢復輪播，避免提前觸發
+      startCarousel();
+    }
+  });
+
+  window.addEventListener('pagehide', () => {
+    clearTimeout(initTimer);
+    stopCarousel();
+  }, { once: true });
 })();
 
 /* ═══════════════════════════════════════════════════════════
@@ -240,6 +270,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
   if (!USE_3D) return;
 
   const THREE_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  const FALLBACK_FLAG = 'ting_3d_fallback';
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -253,9 +284,32 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
   }
 
   loadScript(THREE_SRC)
-    .then(() => initDesktop3D())
+    .then(() => {
+      try {
+        initDesktop3D();
+      } catch (err) {
+        console.error('[3D scene] 場景初始化失敗，已切換為簡化版面：', err);
+        const loading3D = document.getElementById('loading3D');
+        if (loading3D) loading3D.classList.add('is-hidden');
+        document.documentElement.classList.remove('is-desktop');
+        document.documentElement.classList.add('is-mobile');
+      }
+    })
     .catch(() => {
       // three.js 載入失敗（離線或 CDN 被擋）：退回機器人 + 拋擲動畫
+      // 用 sessionStorage 旗標防止 CDN 持續無法載入時造成無限重整迴圈
+      let alreadyTried = false;
+      try { alreadyTried = sessionStorage.getItem(FALLBACK_FLAG) === '1'; } catch (e) { /* 隱私模式等情況忽略 */ }
+
+      if (alreadyTried) {
+        // 重整過一次仍失敗：不再重整，直接靜態切換到手機版樣式並提示
+        document.documentElement.classList.remove('is-desktop');
+        document.documentElement.classList.add('is-mobile');
+        console.error('[3D scene] three.js 無法載入，已切換為簡化版面（不再自動重整）');
+        return;
+      }
+
+      try { sessionStorage.setItem(FALLBACK_FLAG, '1'); } catch (e) { /* 忽略 */ }
       document.documentElement.classList.remove('is-desktop');
       document.documentElement.classList.add('is-mobile');
       location.reload();
@@ -275,6 +329,18 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     const modalLink     = document.getElementById('modalLink');
     const sceneLabel    = document.getElementById('sceneLabel');
     const wasdHint      = document.getElementById('wasdHint');
+
+    if (!threeCanvas || !modal) {
+      console.error('[3D scene] 必要的 DOM 元素缺失，已中止初始化');
+      return;
+    }
+
+    // 成功進入 3D 初始化，清除 fallback 旗標，避免影響下次造訪
+    try { sessionStorage.removeItem(FALLBACK_FLAG); } catch (e) { /* 忽略 */ }
+
+    /* rafId 提前宣告於函式頂部，供下方 webglcontextlost 等較早綁定的
+       事件處理器安全參照（避免暫時性死區疑慮，並利於閱讀） */
+    let rafId = null;
 
     /* ── Tooltip ── */
     const tooltip = document.createElement('div');
@@ -323,14 +389,18 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
 
     const camActual  = { pos: new THREE.Vector3(0, 22, 32), look: new THREE.Vector3(0, 0, 0) };
-    const camDesired = { pos: new THREE.Vector3(0, 28, 45), look: new THREE.Vector3(0, 0, -10) };
+    const camDesired = { pos: new THREE.Vector3(0, 5.4, 34.5), look: new THREE.Vector3(0, 1.6, 24.5) };
 
-    const INTRO_FROM  = new THREE.Vector3(0, 28, 40);
-    const INTRO_TO    = new THREE.Vector3(0, 28, 45);
+    /* 開場運鏡：從高空斜角掃入，最終落在角色背後的第三人稱跟隨點 */
+    const INTRO_FROM      = new THREE.Vector3(10, 14, 30);
+    const INTRO_TO        = new THREE.Vector3(0, 5.4, 34.5);
+    const INTRO_LOOK_FROM = new THREE.Vector3(0, 3, 10);
+    const INTRO_LOOK_TO   = new THREE.Vector3(0, 1.6, 24.5);
     let introProgress = 0;
     const REDUCED_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     let introActive   = !REDUCED_MOTION;
     camActual.pos.copy(REDUCED_MOTION ? INTRO_TO : INTRO_FROM);
+    camActual.look.copy(REDUCED_MOTION ? INTRO_LOOK_TO : INTRO_LOOK_FROM);
 
     let currentState  = REDUCED_MOTION ? 'FREE_ROAM' : 'INTRO';
     let zoomTarget    = null;
@@ -339,10 +409,10 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
 
     const velocity = new THREE.Vector2(0, 0);
 
-    const orbit = { active: false, lastX: 0, lastY: 0, yaw: 0, pitch: 0 };
+    const orbit = { active: false, lastX: 0, lastY: 0, yaw: 0, pitch: 0.3 };
     const ORBIT_SPEED = 0.007;
-    const PITCH_MIN   = -0.8;
-    const PITCH_MAX   = 0.8;
+    const PITCH_MIN   = -0.15;
+    const PITCH_MAX   = 1.0;
 
     const CAM_SMOOTH_POS  = 20;
     const CAM_SMOOTH_LOOK = 14;
@@ -356,8 +426,8 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     const dirLight = new THREE.DirectionalLight(0xfff5cc, 0.5);
     dirLight.position.set(5, 18, 8);
     dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = dirLight.shadow.mapSize.height = 512;
-    Object.assign(dirLight.shadow.camera, { near: 0.5, far: 50, left: -16, right: 16, top: 16, bottom: -16 });
+    dirLight.shadow.mapSize.width = dirLight.shadow.mapSize.height = 1024;
+    Object.assign(dirLight.shadow.camera, { near: 0.5, far: 70, left: -36, right: 36, top: 36, bottom: -36 });
     dirLight.shadow.bias = -0.0005;
     dirLight.shadow.normalBias = 0.02;
     scene.add(dirLight);
@@ -639,6 +709,201 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     })();
 
     /* ══════════════════════════════════════════════
+       TING-BOT — 可見的第三人稱機器人角色
+       沿用首頁機器人 SVG 的金色科技感造型，由 hip / shoulder /
+       head 多個樞紐群組組成，供行走循環與待機呼吸動畫驅動。
+    ══════════════════════════════════════════════ */
+    const character = new THREE.Group();
+    character.name = 'tingbot';
+
+    const botGoldMat  = goldMat({ roughness: 0.22, metalness: 0.85 });
+    const botDarkMat  = darkMat({ color: 0x14142a, metalness: 0.55, roughness: 0.32 });
+    const botPlateMat = darkMat({ color: 0x1c1c34, metalness: 0.45, roughness: 0.4 });
+    const botEyeMat   = new THREE.MeshStandardMaterial({
+      color: 0xFFF0C0, emissive: 0xFFE9A0, emissiveIntensity: 1.6, roughness: 0.3, metalness: 0.1
+    });
+    const botCoreMat  = new THREE.MeshStandardMaterial({
+      color: 0xD4AF37, emissive: 0xD4AF37, emissiveIntensity: 1.1, transparent: true, opacity: 0.85
+    });
+
+    /* bob：承載呼吸 / 走路上下彈動的群組 */
+    const bob = new THREE.Group();
+    bob.position.y = 0.95;
+    character.add(bob);
+
+    /* 軀幹 */
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.78, 0.4), botDarkMat);
+    torso.position.y = 0.5; torso.castShadow = true; bob.add(torso);
+    const torsoTrim = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.06, 0.44), botGoldMat);
+    torsoTrim.position.y = 0.86; bob.add(torsoTrim);
+    const chestCore = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 12), botCoreMat);
+    chestCore.position.set(0, 0.55, -0.21); bob.add(chestCore);
+
+    /* 頭部群組（可獨立轉動／點頭） */
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 1.12, 0);
+    bob.add(headGroup);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.4, 0.42), botPlateMat);
+    head.castShadow = true; headGroup.add(head);
+    const visor = new THREE.Mesh(
+      new THREE.BoxGeometry(0.36, 0.18, 0.04),
+      new THREE.MeshStandardMaterial({ color: 0x082838, emissive: 0x0a3850, emissiveIntensity: 0.6, roughness: 0.5 })
+    );
+    visor.position.set(0, 0.01, -0.22); headGroup.add(visor);
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 10), botEyeMat.clone());
+    eyeL.position.set(-0.1, 0.01, -0.245); headGroup.add(eyeL);
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 10), botEyeMat.clone());
+    eyeR.position.set(0.1, 0.01, -0.245); headGroup.add(eyeR);
+    const headTrim = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.46), botGoldMat);
+    headTrim.position.y = 0.21; headGroup.add(headTrim);
+    [-1, 1].forEach(side => {
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.22, 0.12), botGoldMat);
+      fin.position.set(side * 0.27, 0.02, -0.02); fin.castShadow = true; headGroup.add(fin);
+    });
+
+    /* 手臂（肩部樞紐 → 上臂 → 下臂 → 手） */
+    function buildArm(side) {
+      const pivot = new THREE.Group();
+      pivot.position.set(side * 0.42, 0.82, 0);
+      const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.085, 0.4, 8), botDarkMat);
+      upper.position.y = -0.2; upper.castShadow = true; pivot.add(upper);
+      const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), botGoldMat);
+      elbow.position.y = -0.4; pivot.add(elbow);
+      const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.38, 8), botPlateMat);
+      lower.position.y = -0.59; lower.castShadow = true; pivot.add(lower);
+      const hand = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.16, 0.13), botGoldMat);
+      hand.position.y = -0.8; hand.castShadow = true; pivot.add(hand);
+      bob.add(pivot);
+      return pivot;
+    }
+    const armL = buildArm(-1);
+    const armR = buildArm(1);
+
+    /* 雙腿（髖部樞紐 → 大腿 → 小腿 → 腳，直接掛在 character 上，
+       不隨 bob 上下彈動，僅自身依步態旋轉，模擬真實走路重心） */
+    function buildLeg(side) {
+      const pivot = new THREE.Group();
+      pivot.position.set(side * 0.17, 0.95, 0);
+      const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.095, 0.46, 8), botDarkMat);
+      thigh.position.y = -0.23; thigh.castShadow = true; pivot.add(thigh);
+      const knee = new THREE.Mesh(new THREE.SphereGeometry(0.085, 8, 8), botGoldMat);
+      knee.position.y = -0.46; pivot.add(knee);
+      const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.08, 0.42, 8), botPlateMat);
+      shin.position.y = -0.67; shin.castShadow = true; pivot.add(shin);
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 0.3), botGoldMat);
+      foot.position.set(0, -0.91, 0.04); foot.castShadow = true; pivot.add(foot);
+      character.add(pivot);
+      return pivot;
+    }
+    const legL = buildLeg(-1);
+    const legR = buildLeg(1);
+
+    /* 落地接觸陰影（廉價假 AO，隨彈跳高度微調透明度增加重量感） */
+    const contactShadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.45, 24),
+      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.32, depthWrite: false })
+    );
+    contactShadow.rotation.x = -Math.PI / 2;
+    contactShadow.position.y = 0.015;
+    character.add(contactShadow);
+
+    /* 腳底光環（呼應行動版 holo-ring 的金色光暈） */
+    const charRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.32, 0.022, 8, 28),
+      new THREE.MeshStandardMaterial({ color: 0xD4AF37, emissive: 0xD4AF37, emissiveIntensity: 1.0, transparent: true, opacity: 0.5 })
+    );
+    charRing.rotation.x = Math.PI / 2;
+    charRing.position.y = 0.02;
+    character.add(charRing);
+
+    character.position.set(0, 0, 26);
+    character.rotation.y = 0;
+    scene.add(character);
+
+    /* ── 腳步特效：輕量物件池，重複利用 2 個發光圓環 ── */
+    const FOOT_RING_COUNT = 2;
+    const footRings = [];
+    for (let i = 0; i < FOOT_RING_COUNT; i++) {
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.07, 0.15, 16),
+        new THREE.MeshBasicMaterial({ color: 0xD4AF37, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.visible = false;
+      scene.add(ring);
+      footRings.push({ mesh: ring, life: 999 });
+    }
+    let footRingIdx = 0;
+    function spawnFootstep(sideX) {
+      const fr = footRings[footRingIdx % FOOT_RING_COUNT];
+      footRingIdx++;
+      const local = new THREE.Vector3(sideX, 0.03, 0.05);
+      character.localToWorld(local);
+      fr.mesh.position.set(local.x, 0.03, local.z);
+      fr.mesh.scale.set(0.5, 0.5, 0.5);
+      fr.mesh.material.opacity = 0.5;
+      fr.mesh.visible = true;
+      fr.life = 0;
+    }
+    function updateFootRings(dt) {
+      footRings.forEach(fr => {
+        if (!fr.mesh.visible) return;
+        fr.life += dt;
+        const t = fr.life / 0.55;
+        if (t >= 1) { fr.mesh.visible = false; return; }
+        fr.mesh.material.opacity = 0.5 * (1 - t);
+        const s = 0.5 + t * 0.6;
+        fr.mesh.scale.set(s, s, s);
+      });
+    }
+
+    /* ── 行走 / 待機動畫：依 velocity 大小切換步態與呼吸 ── */
+    let walkCycle     = 0;
+    let footPhaseLast  = 0;
+    function animateCharacter(dt, elapsed) {
+      const speed  = velocity.length();
+      const moving = speed > 0.45;
+
+      if (moving) {
+        walkCycle += dt * (5.5 + speed * 0.5);
+        const swing = Math.sin(walkCycle);
+        legL.rotation.x =  swing * 0.55;
+        legR.rotation.x = -swing * 0.55;
+        armL.rotation.x = -swing * 0.4;
+        armR.rotation.x =  swing * 0.4;
+        bob.position.y  = 0.95 + Math.abs(Math.cos(walkCycle)) * 0.05;
+        headGroup.rotation.z = swing * 0.025;
+
+        if (swing > 0.92 && footPhaseLast <= 0.92) spawnFootstep(0.17);
+        if (swing < -0.92 && footPhaseLast >= -0.92) spawnFootstep(-0.17);
+        footPhaseLast = swing;
+      } else {
+        legL.rotation.x += (0 - legL.rotation.x) * Math.min(1, dt * 8);
+        legR.rotation.x += (0 - legR.rotation.x) * Math.min(1, dt * 8);
+        armL.rotation.x += (0 - armL.rotation.x) * Math.min(1, dt * 8);
+        armR.rotation.x += (0 - armR.rotation.x) * Math.min(1, dt * 8);
+        bob.position.y  = 0.95 + Math.sin(elapsed * 1.6) * 0.03;
+        headGroup.rotation.z += (0 - headGroup.rotation.z) * Math.min(1, dt * 6);
+        headGroup.rotation.y  = Math.sin(elapsed * 0.55) * 0.08;
+        footPhaseLast = 0;
+      }
+
+      const glow = 1.3 + Math.sin(elapsed * 3) * 0.35;
+      eyeL.material.emissiveIntensity = glow;
+      eyeR.material.emissiveIntensity = glow;
+      chestCore.material.opacity = 0.7 + Math.sin(elapsed * 2.2) * 0.15;
+
+      const ringPulse = 1 + Math.sin(elapsed * 2) * 0.06;
+      charRing.scale.set(ringPulse, 1, ringPulse);
+      charRing.material.opacity = 0.35 + Math.sin(elapsed * 2) * 0.12;
+      charRing.rotation.z += dt * 0.4;
+
+      contactShadow.material.opacity = Math.max(0.12, 0.32 - (bob.position.y - 0.95) * 1.6);
+
+      updateFootRings(dt);
+    }
+
+    /* ══════════════════════════════════════════════
        樹木 — 極簡花園世界
     ══════════════════════════════════════════════ */
     function createTree(x, z, scale = 1) {
@@ -699,7 +964,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     const LABEL_ZH = { portfolio: '作品集', about: '關於我', contact: '聯絡我', skills: '技能', service: '服務' };
 
     /* ══════════════════════════════════════════════
-       MODAL 控制（含基本鍵盤可達性）
+       MODAL 控制（含鍵盤可達性：ESC 關閉、Tab 焦點循環）
     ══════════════════════════════════════════════ */
     let lastFocused = null;
     function openModal(name) {
@@ -723,7 +988,20 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     modalClose.addEventListener('click', closeModal);
     modalBackdrop.addEventListener('click', closeModal);
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+      if (!modal.classList.contains('open')) return;
+      if (e.key === 'Escape') { closeModal(); return; }
+      // Tab 焦點陷阱：讓焦點維持在 modal 內，避免跳到背景 3D canvas
+      if (e.key === 'Tab') {
+        const focusables = modal.querySelectorAll('a[href], button:not([disabled])');
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last  = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first.focus();
+        }
+      }
     });
 
     /* ══════════════════════════════════════════════
@@ -866,35 +1144,81 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     }
 
     /* ══════════════════════════════════════════════
-       WASD — dt-based 移動
+       角色移動 — 相機相對 WASD（第三人稱跟隨）
     ══════════════════════════════════════════════ */
     const ACCEL     = 600;
     const FRICTION  = 0.92;
-    const MAX_SPEED = 12;
-    const BOUNDS    = 35;
+    const MAX_SPEED = 9;
+    const BOUNDS    = 33;
 
-    function updateWASD(dt) {
+    const CHASE_RADIUS = 8.5;
+    const CHASE_HEIGHT = 4.2;
+
+    function updateCharacterMovement(dt) {
       if (currentState !== 'FREE_ROAM') return;
 
-      if (keys.w) velocity.y -= ACCEL * dt;
-      if (keys.s) velocity.y += ACCEL * dt;
-      if (keys.a) velocity.x += ACCEL * dt;
-      if (keys.d) velocity.x -= ACCEL * dt;
+      /* 依目前鏡頭朝向（orbit.yaw）換算前後左右，操作手感更直覺 */
+      const yaw    = orbit.yaw;
+      const fwdX   = -Math.sin(yaw), fwdZ   = -Math.cos(yaw);
+      const rightX =  Math.cos(yaw), rightZ = -Math.sin(yaw);
+
+      let ix = 0, iz = 0;
+      if (keys.w) { ix += fwdX;   iz += fwdZ;   }
+      if (keys.s) { ix -= fwdX;   iz -= fwdZ;   }
+      if (keys.a) { ix -= rightX; iz -= rightZ; }
+      if (keys.d) { ix += rightX; iz += rightZ; }
+
+      const len = Math.hypot(ix, iz);
+      if (len > 0.001) {
+        ix /= len; iz /= len;
+        velocity.x += ix * ACCEL * dt;
+        velocity.y += iz * ACCEL * dt; // .y 欄位借用作世界 Z 軸分量
+      }
 
       if (velocity.length() > MAX_SPEED) velocity.normalize().multiplyScalar(MAX_SPEED);
-
       const frictionFrame = Math.pow(FRICTION, dt / (1 / 60));
       velocity.multiplyScalar(frictionFrame);
 
-      camDesired.pos.x = Math.max(-BOUNDS, Math.min(BOUNDS, camDesired.pos.x + velocity.x * dt));
-      camDesired.pos.z = Math.max(-BOUNDS, Math.min(BOUNDS, camDesired.pos.z + velocity.y * dt));
+      character.position.x = Math.max(-BOUNDS, Math.min(BOUNDS, character.position.x + velocity.x * dt));
+      character.position.z = Math.max(-BOUNDS, Math.min(BOUNDS, character.position.z + velocity.y * dt));
+
+      /* 角色平滑轉向至移動方向（最短路徑角度插值） */
+      if (velocity.length() > 0.35) {
+        const targetYaw = Math.atan2(-velocity.x, -velocity.y);
+        let diff = targetYaw - character.rotation.y;
+        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+        character.rotation.y += diff * Math.min(1, dt * 9);
+      }
+
+      /* 未手動拖曳鏡頭時，相機緩緩回正到角色背後（電玩式自動跟隨） */
+      if (!orbit.active && len > 0.001) {
+        let camDiff = character.rotation.y - orbit.yaw;
+        camDiff = Math.atan2(Math.sin(camDiff), Math.cos(camDiff));
+        orbit.yaw += camDiff * Math.min(1, dt * 1.6);
+      }
+    }
+
+    /* 第三人稱跟隨相機：依 orbit.yaw / pitch 圍繞角色運鏡 */
+    function updateChaseCamera() {
+      const yaw = orbit.yaw, pitch = orbit.pitch;
+      const offset = new THREE.Vector3(
+        Math.sin(yaw) * Math.cos(pitch) * CHASE_RADIUS,
+        CHASE_HEIGHT + Math.sin(pitch) * 3.4,
+        Math.cos(yaw) * Math.cos(pitch) * CHASE_RADIUS
+      );
+      camDesired.pos.copy(character.position).add(offset);
+
+      const lookForward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+      camDesired.look.copy(character.position)
+        .add(new THREE.Vector3(0, 1.5, 0))
+        .addScaledVector(lookForward, 1.3);
     }
 
     /* ══════════════════════════════════════════════
        ANIMATE LOOP — 分頁不可見時暫停 + 自適應 DPR + 錯誤邊界
     ══════════════════════════════════════════════ */
     const clock = new THREE.Clock();
-    let rafId = null;
+    /* rafId 已於函式頂部宣告，這裡沿用同一個變數 */
     let shadowFrame = 0;
     const SHADOW_INTERVAL = 3;
 
@@ -936,11 +1260,12 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
           introProgress = Math.min(1, introProgress + dt * 0.6);
           const t = easeOutExpo(introProgress);
           camActual.pos.lerpVectors(INTRO_FROM, INTRO_TO, t);
-          camActual.look.lerp(new THREE.Vector3(0, 2, -4), t * 0.1);
+          camActual.look.lerpVectors(INTRO_LOOK_FROM, INTRO_LOOK_TO, t);
           camera.position.copy(camActual.pos);
           camera.lookAt(camActual.look);
           if (introProgress >= 1) { introActive = false; currentState = 'FREE_ROAM'; }
           animateObjects(elapsed);
+          animateCharacter(dt, elapsed);
           tickParticles(elapsed);
           shadowFrame = (shadowFrame + 1) % SHADOW_INTERVAL;
           if (shadowFrame === 0) renderer.shadowMap.needsUpdate = true;
@@ -948,28 +1273,21 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
           return;
         }
 
-        updateWASD(dt);
+        updateCharacterMovement(dt);
+        animateCharacter(dt, elapsed);
 
-        if (zoomTarget && zoomProgress < 1) {
+        if (currentState === 'FREE_ROAM') {
+          updateChaseCamera();
+        } else if (zoomTarget && zoomProgress < 1) {
           zoomProgress = Math.min(1, zoomProgress + dt * 1.1);
           const t = easeInOutQuart(zoomProgress);
           camDesired.pos.lerpVectors(zoomFrom.camPos, zoomTarget.camPos, t);
           camDesired.look.lerpVectors(zoomFrom.lookAt, zoomTarget.lookAt, t);
         }
 
-        const orbitOffset = new THREE.Vector3(
-          Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * 2,
-          Math.sin(orbit.pitch) * 2,
-          Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * 2 - 2
-        );
-
-        const targetPos = camDesired.pos.clone().add(
-          currentState === 'FREE_ROAM' ? orbitOffset : new THREE.Vector3()
-        );
-
         const alphaPos  = 1 - Math.exp(-CAM_SMOOTH_POS  * dt);
         const alphaLook = 1 - Math.exp(-CAM_SMOOTH_LOOK * dt);
-        camActual.pos.lerp(targetPos,        alphaPos);
+        camActual.pos.lerp(camDesired.pos,   alphaPos);
         camActual.look.lerp(camDesired.look, alphaLook);
 
         camera.position.copy(camActual.pos);
@@ -1080,9 +1398,11 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     window.addEventListener('resize', handleResize, { passive: true });
     window.addEventListener('orientationchange', handleResize, { passive: true });
 
-    /* ── 3D 場景就緒：淡入 UI 提示 ── */
+    /* ── 3D 場景就緒：淡入 UI 提示、隱藏載入動畫 ── */
     if (sceneLabel) sceneLabel.classList.add('ready');
     if (wasdHint)   wasdHint.classList.add('ready');
+    const loading3D = document.getElementById('loading3D');
+    if (loading3D) loading3D.classList.add('is-hidden');
 
     /* ── 卸載時清理 ── */
     window.addEventListener('pagehide', () => {

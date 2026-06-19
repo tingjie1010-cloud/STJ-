@@ -4,71 +4,87 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Ting | 數位應用與網頁開發者</title>
-<meta name="description" content="Ting 的個人形象官網 — 數位應用與網頁開發者，你的數位管家。">
+<meta name="description" content="Ting 的個人形象官網 — 數位應用與網頁開發者，你的數位管家。提供網頁開發、UI/UX 設計、前端工程服務。">
 <meta property="og:title" content="Ting | 數位應用與網頁開發者">
 <meta property="og:description" content="數位管家已就位 — 網頁開發、UI/UX 設計、前端工程">
 <meta property="og:type" content="website">
+<meta property="og:image" content="/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ting | 數位應用與網頁開發者">
+<meta name="twitter:description" content="數位管家已就位 — 網頁開發、UI/UX 設計、前端工程">
 <meta name="theme-color" content="#04040C">
 <meta name="color-scheme" content="dark">
+<meta name="robots" content="index, follow">
+<!-- TODO：請將下方 canonical 網址換成實際正式網域 -->
+<!-- <link rel="canonical" href="https://你的網域.com/"> -->
 
-<!-- Favicon: 圓形 STJ 頭像 -->
+<!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19.5' fill='%23FFFFFF' stroke='%23E0E0E0' stroke-width='0.5'/%3E%3Ctext x='20' y='25' text-anchor='middle' font-family='Georgia, Times New Roman, serif' font-size='18' font-weight='500' fill='%23000000'%3ESTJ%3C/text%3E%3C/svg%3E">
 
+<!-- Preconnect for performance -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<!-- Non-blocking font load -->
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+
 <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
 <!-- ════════════════════════════════════════════
-     背景層
-     - 手機：弧線軌跡 + 光點動畫（主視覺背景）
-     - 桌面：被 three-canvas 完全遮蓋，JS 不會啟動此迴圈
-═══════════════════════════════════════════════ -->
-<canvas id="bg-canvas"></canvas>
-<div class="grid-overlay"></div>
-<div class="vignette"></div>
+     背景層（手機版）
+     - 弧線軌跡 + 光點動畫
+     - 桌面：被 three-canvas 遮蓋，JS 不啟動此迴圈
+════════════════════════════════════════════════ -->
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div class="grid-overlay" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
 
 <!-- ════════════════════════════════════════════
      桌面版 3D 個人空間（手機完全不建立 WebGL context）
-═══════════════════════════════════════════════ -->
-<canvas id="three-canvas"></canvas>
+════════════════════════════════════════════════ -->
+<canvas id="three-canvas" aria-label="Ting 的互動式 3D 個人空間，可使用 WASD 操控金色機器人角色自由走動，點擊物件進入各頁面" role="img" tabindex="0"></canvas>
+
+<div class="loading-3d" id="loading3D" aria-hidden="true">
+  <div class="loading-3d__ring"></div>
+  <p>個人空間建構中…</p>
+</div>
 
 <!-- ════════════════════════════════════════════
      手機版主視覺：機器人 + 拋擲動畫
-═══════════════════════════════════════════════ -->
+════════════════════════════════════════════════ -->
 <main id="mobileHero">
-<section class="hero">
+<section class="hero" aria-label="Ting 的個人品牌首頁">
 
   <div class="robot-stage" id="robotStage">
 
-    <div class="holo-ring"></div>
-    <div class="orbit-ring">
+    <div class="holo-ring" aria-hidden="true"></div>
+    <div class="orbit-ring" aria-hidden="true">
       <div class="orbit-dot"></div>
       <div class="orbit-dot"></div>
       <div class="orbit-dot"></div>
     </div>
 
-    <div class="energy-burst" id="energyBurst">
+    <div class="energy-burst" id="energyBurst" aria-hidden="true">
       <div class="e-line"></div><div class="e-line"></div><div class="e-line"></div><div class="e-line"></div><div class="e-line"></div>
     </div>
 
-    <div class="buttons-layer">
-      <a href="contact.html"   class="throw-btn" data-i="0" style="--dly:2.3s;--dur:0.78s;--spin:-5deg;"><span class="btn-icon">✉️</span>聯絡我</a>
-      <a href="about.html"     class="throw-btn" data-i="1" style="--dly:2.55s;--dur:0.78s;--spin:4deg;"><span class="btn-icon">👤</span>關於我</a>
-      <a href="portfolio.html" class="throw-btn" data-i="2" style="--dly:2.8s;--dur:0.78s;--spin:0deg;"><span class="btn-icon">💼</span>作品集</a>
-      <a href="skills.html"    class="throw-btn" data-i="3" style="--dly:3.05s;--dur:0.78s;--spin:-3deg;"><span class="btn-icon">⚡</span>技能</a>
-      <a href="eco.html"       class="throw-btn" data-i="4" style="--dly:3.3s;--dur:0.78s;--spin:6deg;"><span class="btn-icon">📝</span>服務</a>
-    </div>
+    <!-- 導覽按鈕層：從機器人「拋出」 -->
+    <nav class="buttons-layer" aria-label="主要導覽">
+      <a href="contact.html"   class="throw-btn" data-i="0" style="--dly:2.3s;--dur:0.78s;--spin:-5deg;"><span class="btn-icon" aria-hidden="true">✉️</span>聯絡我</a>
+      <a href="about.html"     class="throw-btn" data-i="1" style="--dly:2.55s;--dur:0.78s;--spin:4deg;"><span class="btn-icon" aria-hidden="true">👤</span>關於我</a>
+      <a href="portfolio.html" class="throw-btn" data-i="2" style="--dly:2.8s;--dur:0.78s;--spin:0deg;"><span class="btn-icon" aria-hidden="true">💼</span>作品集</a>
+      <a href="skills.html"    class="throw-btn" data-i="3" style="--dly:3.05s;--dur:0.78s;--spin:-3deg;"><span class="btn-icon" aria-hidden="true">⚡</span>技能</a>
+      <a href="eco.html"       class="throw-btn" data-i="4" style="--dly:3.3s;--dur:0.78s;--spin:6deg;"><span class="btn-icon" aria-hidden="true">📝</span>服務</a>
+    </nav>
 
     <div class="robot-wrap" id="robotWrap">
       <div class="robot-inner">
         <div style="position:relative; display:inline-block;">
-          <div class="speech-bubble" id="speechBubble">你好，我是 Ting ⚡</div>
-          <svg id="robotSVG" width="240" height="340" viewBox="0 0 240 340" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ting 的機器人助手形象"
-               style="filter: drop-shadow(0 0 25px rgba(212,175,55,0.18)) drop-shadow(0 4px 40px rgba(0,0,0,0.5));">
+          <div class="speech-bubble" id="speechBubble" role="status" aria-live="polite" aria-atomic="true">你好，我是 Ting ⚡</div>
+          <svg id="robotSVG" width="240" height="340" viewBox="0 0 240 340" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ting 的機器人助手形象">
             <defs>
               <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stop-color="#F5E090"/><stop offset="55%" stop-color="#D4AF37"/><stop offset="100%" stop-color="#9A7020"/>
@@ -128,61 +144,33 @@
               <rect x="68" y="160" width="104" height="110" rx="22" fill="url(#gBody)" stroke="rgba(212,175,55,0.5)" stroke-width="1.5"/>
               <path d="M68 170 Q78 155 100 160 L68 175Z" fill="url(#gShoulder)" stroke="rgba(212,175,55,0.3)" stroke-width="1"/>
               <path d="M172 170 Q162 155 140 160 L172 175Z" fill="url(#gShoulder)" stroke="rgba(212,175,55,0.3)" stroke-width="1"/>
-              <rect x="80" y="172" width="80" height="64" rx="14" fill="url(#gScreen)" stroke="rgba(212,175,55,0.32)" stroke-width="1"/>
-              <line x1="80" y1="184" x2="160" y2="184" stroke="rgba(212,175,55,0.07)" stroke-width="1"/>
-              <line x1="80" y1="194" x2="160" y2="194" stroke="rgba(212,175,55,0.07)" stroke-width="1"/>
-              <line x1="80" y1="204" x2="160" y2="204" stroke="rgba(212,175,55,0.07)" stroke-width="1"/>
-              <line x1="80" y1="214" x2="160" y2="214" stroke="rgba(212,175,55,0.07)" stroke-width="1"/>
-              <line x1="80" y1="224" x2="160" y2="224" stroke="rgba(212,175,55,0.07)" stroke-width="1"/>
-              <text x="120" y="217" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="40" font-weight="800" fill="url(#gGold)" opacity="0.82">T</text>
-              <polygon points="84,176 90,176 88,183 82,183" fill="rgba(212,175,55,0.15)" stroke="rgba(212,175,55,0.3)" stroke-width="0.8"/>
-              <polygon points="156,176 150,176 152,183 158,183" fill="rgba(212,175,55,0.15)" stroke="rgba(212,175,55,0.3)" stroke-width="0.8"/>
-              <rect x="90" y="244" width="60" height="7" rx="3.5" fill="rgba(12,12,24,0.9)" stroke="rgba(212,175,55,0.25)" stroke-width="0.8"/>
-              <rect x="90" y="244" width="60" height="7" rx="3.5" fill="rgba(212,175,55,0.35)" id="ledBar">
-                <animate attributeName="width" values="60;40;55;30;60" dur="3s" repeatCount="indefinite"/>
+              <rect x="82" y="175" width="76" height="52" rx="10" fill="url(#gScreen)" stroke="rgba(212,175,55,0.4)" stroke-width="1.2"/>
+              <line x1="82" y1="185" x2="158" y2="185" stroke="rgba(212,175,55,0.06)" stroke-width="1"/>
+              <line x1="82" y1="195" x2="158" y2="195" stroke="rgba(212,175,55,0.06)" stroke-width="1"/>
+              <line x1="82" y1="205" x2="158" y2="205" stroke="rgba(212,175,55,0.06)" stroke-width="1"/>
+              <line x1="82" y1="215" x2="158" y2="215" stroke="rgba(212,175,55,0.06)" stroke-width="1"/>
+              <rect x="90" y="182" width="60" height="38" rx="6" fill="rgba(212,175,55,0.04)"/>
+              <rect x="94" y="188" width="22" height="3" rx="1.5" fill="rgba(212,175,55,0.5)"/>
+              <rect x="94" y="194" width="36" height="3" rx="1.5" fill="rgba(212,175,55,0.3)"/>
+              <rect x="94" y="200" width="28" height="3" rx="1.5" fill="rgba(212,175,55,0.2)"/>
+              <circle cx="143" cy="196" r="8" fill="rgba(212,175,55,0.15)" stroke="rgba(212,175,55,0.5)" stroke-width="1">
+                <animate attributeName="opacity" values="0.6;1;0.6" dur="2.4s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="143" cy="196" r="4" fill="rgba(212,175,55,0.7)">
+                <animate attributeName="r" values="3;5;3" dur="2.4s" repeatCount="indefinite"/>
+              </circle>
+              <rect x="88" y="236" width="64" height="20" rx="10" fill="rgba(8,12,24,0.8)" stroke="rgba(212,175,55,0.25)" stroke-width="1"/>
+              <rect x="92" y="240" width="56" height="12" rx="6" fill="rgba(212,175,55,0.08)"/>
+              <rect id="bodyMouthActive" x="92" y="241" width="56" height="5" rx="2.5" fill="rgba(212,175,55,0.5)">
+                <animate attributeName="width" values="56;38;50;22;56" dur="2.2s" repeatCount="indefinite"/>
               </rect>
-              <line x1="68" y1="195" x2="68" y2="215" stroke="rgba(212,175,55,0.3)" stroke-width="1.5"/>
-              <line x1="172" y1="195" x2="172" y2="215" stroke="rgba(212,175,55,0.3)" stroke-width="1.5"/>
-              <line x1="68" y1="200" x2="64" y2="200" stroke="rgba(212,175,55,0.25)" stroke-width="1"/>
-              <line x1="68" y1="206" x2="64" y2="206" stroke="rgba(212,175,55,0.25)" stroke-width="1"/>
-              <line x1="68" y1="212" x2="64" y2="212" stroke="rgba(212,175,55,0.25)" stroke-width="1"/>
-              <line x1="172" y1="200" x2="176" y2="200" stroke="rgba(212,175,55,0.25)" stroke-width="1"/>
-              <line x1="172" y1="206" x2="176" y2="206" stroke="rgba(212,175,55,0.25)" stroke-width="1"/>
-              <line x1="172" y1="212" x2="176" y2="212" stroke="rgba(212,175,55,0.25)" stroke-width="1"/>
-              <rect x="72" y="264" width="96" height="12" rx="6" fill="url(#gShoulder)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
-              <line x1="80" y1="270" x2="160" y2="270" stroke="rgba(212,175,55,0.15)" stroke-width="0.8"/>
-              <rect x="84" y="274" width="72" height="16" rx="8" fill="url(#gBody)" stroke="rgba(212,175,55,0.32)" stroke-width="1"/>
-              <line x1="120" y1="276" x2="120" y2="288" stroke="rgba(212,175,55,0.2)" stroke-width="0.8"/>
-              <rect x="82" y="288" width="32" height="72" rx="16" fill="url(#gBody)" stroke="rgba(212,175,55,0.38)" stroke-width="1.3"/>
-              <rect x="88" y="300" width="20" height="28" rx="6" fill="url(#gPlate)" stroke="rgba(212,175,55,0.15)" stroke-width="0.7"/>
-              <ellipse cx="98" cy="330" rx="13" ry="8" fill="url(#gShoulder)" stroke="rgba(212,175,55,0.35)" stroke-width="1"/>
-              <rect x="86" y="328" width="24" height="34" rx="12" fill="url(#gBody)" stroke="rgba(212,175,55,0.3)" stroke-width="1"/>
-              <rect x="78" y="355" width="40" height="18" rx="9" fill="url(#gPlate)" stroke="rgba(212,175,55,0.35)" stroke-width="1"/>
-              <line x1="82" y1="362" x2="114" y2="362" stroke="rgba(212,175,55,0.15)" stroke-width="0.8"/>
-              <rect x="126" y="288" width="32" height="72" rx="16" fill="url(#gBody)" stroke="rgba(212,175,55,0.38)" stroke-width="1.3"/>
-              <rect x="132" y="300" width="20" height="28" rx="6" fill="url(#gPlate)" stroke="rgba(212,175,55,0.15)" stroke-width="0.7"/>
-              <ellipse cx="142" cy="330" rx="13" ry="8" fill="url(#gShoulder)" stroke="rgba(212,175,55,0.35)" stroke-width="1"/>
-              <rect x="130" y="328" width="24" height="34" rx="12" fill="url(#gBody)" stroke="rgba(212,175,55,0.3)" stroke-width="1"/>
-              <rect x="122" y="355" width="40" height="18" rx="9" fill="url(#gPlate)" stroke="rgba(212,175,55,0.35)" stroke-width="1"/>
-              <line x1="126" y1="362" x2="158" y2="362" stroke="rgba(212,175,55,0.15)" stroke-width="0.8"/>
-              <ellipse cx="120" cy="376" rx="60" ry="7" fill="rgba(212,175,55,0.07)">
-                <animate attributeName="rx" values="55;65;55" dur="4s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.07;0.12;0.07" dur="4s" repeatCount="indefinite"/>
-              </ellipse>
+              <rect x="100" y="252" width="40" height="10" rx="5" fill="url(#gPlate)" stroke="rgba(212,175,55,0.22)" stroke-width="0.8"/>
             </g>
             <!-- HEAD -->
             <g id="robot-head-group">
-              <rect x="108" y="138" width="24" height="24" rx="6" fill="url(#gBody)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
-              <line x1="112" y1="142" x2="112" y2="158" stroke="rgba(212,175,55,0.2)" stroke-width="1"/>
-              <line x1="120" y1="140" x2="120" y2="160" stroke="rgba(212,175,55,0.12)" stroke-width="0.8"/>
-              <line x1="128" y1="142" x2="128" y2="158" stroke="rgba(212,175,55,0.2)" stroke-width="1"/>
-              <rect x="114" y="15" width="12" height="24" rx="4" fill="url(#gBody)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
-              <line x1="120" y1="15" x2="120" y2="3" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
-              <circle cx="120" cy="3" r="5" fill="url(#gEyeGlow)" filter="url(#fGlow)"/>
-              <circle cx="120" cy="3" r="9" fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.3">
-                <animate attributeName="r" values="6;14;6" dur="2s" repeatCount="indefinite"/>
+              <ellipse cx="120" cy="28" rx="52" ry="12" fill="rgba(212,175,55,0.04)">
                 <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
-              </circle>
+              </ellipse>
               <rect x="72" y="28" width="96" height="82" rx="22" fill="url(#gBody)" stroke="rgba(212,175,55,0.55)" stroke-width="1.5"/>
               <path d="M82 28 Q120 18 158 28" stroke="rgba(212,175,55,0.35)" stroke-width="1.2" fill="none"/>
               <path d="M82 28 Q120 22 158 28" fill="url(#gShoulder)" opacity="0.6"/>
@@ -234,21 +222,21 @@
   </div>
 
   <p class="hero-tagline">你的數位管家已就位 &nbsp;·&nbsp; 選擇一個方向開始</p>
-  <div class="scroll-hint"><span>Scroll</span><div class="scroll-line"></div></div>
+  <div class="scroll-hint" aria-hidden="true"><span>Scroll</span><div class="scroll-line"></div></div>
 
 </section>
 
-<footer class="footer"><p>© 2025 Ting · All Rights Reserved</p></footer>
+<footer class="footer" role="contentinfo"><p>© 2025 Ting · All Rights Reserved</p></footer>
 </main>
 
 <!-- ════════════════════════════════════════════
      桌面版專用元件：玻璃擬態彈窗、WASD 提示、場景標籤
-═══════════════════════════════════════════════ -->
-<div class="room-modal" id="roomModal">
+════════════════════════════════════════════════ -->
+<div class="room-modal" id="roomModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
   <div class="room-modal__backdrop" id="modalBackdrop"></div>
   <div class="room-modal__panel">
-    <button class="room-modal__close" id="modalClose" aria-label="關閉">✕</button>
-    <div class="room-modal__icon" id="modalIcon">💼</div>
+    <button class="room-modal__close" id="modalClose" aria-label="關閉對話框">✕</button>
+    <div class="room-modal__icon" id="modalIcon" aria-hidden="true">💼</div>
     <h2 class="room-modal__title" id="modalTitle">作品集</h2>
     <p class="room-modal__desc" id="modalDesc">探索 Ting 的數位設計與開發作品。</p>
     <div class="room-modal__actions">
@@ -258,7 +246,7 @@
   </div>
 </div>
 
-<div class="wasd-hint" id="wasdHint">
+<div class="wasd-hint" id="wasdHint" aria-hidden="true">
   <div class="wasd-hint__inner">
     <span class="wasd-key">W</span>
     <div class="wasd-row">
@@ -269,7 +257,7 @@
     <span class="wasd-label">探索世界</span>
   </div>
   <div class="wasd-hint__inner wasd-hint__mouse">
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <rect x="3" y="2" width="12" height="16" rx="6" stroke="rgba(212,175,55,0.7)" stroke-width="1.2"/>
       <line x1="9" y1="2" x2="9" y2="9" stroke="rgba(212,175,55,0.7)" stroke-width="1.2"/>
     </svg>
@@ -277,37 +265,38 @@
   </div>
 </div>
 
-<div class="scene-label" id="sceneLabel">
+<div class="scene-label" id="sceneLabel" aria-hidden="true">
   <span>3D 個人空間</span>
   <span class="scene-label__sub">點擊場景物件以探索各頁面 · WASD 自由走動</span>
 </div>
 
 <!-- NAV（手機 / 桌面共用） -->
-<header>
-  <nav class="glass-nav">
+<header role="banner">
+  <nav class="glass-nav" aria-label="主要導覽列">
     <div class="nav-container">
-      <a href="#" class="nav-logo">Ting.</a>
+      <a href="/" class="nav-logo" aria-label="Ting 首頁">Ting.</a>
       <div class="nav-right">
-        <div class="status-pill">
-          <div class="status-dot"></div>
+        <div class="status-pill" aria-label="上線狀態">
+          <div class="status-dot" aria-hidden="true"></div>
           <span>管家上線</span>
         </div>
-        <div class="hamburger" id="hamburgerBtn" role="button" aria-expanded="false" aria-label="開啟選單" tabindex="0">
-          <span></span><span></span><span></span>
-        </div>
+        <button class="hamburger" id="hamburgerBtn" aria-expanded="false" aria-controls="hamburgerMenu" aria-label="開啟選單" type="button">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </button>
       </div>
     </div>
-    <div class="hamburger-menu" id="hamburgerMenu">
-      <a href="contact.html">✉️ 聯絡我</a>
-      <a href="about.html">👤 關於我</a>
-      <a href="portfolio.html">💼 作品集</a>
-      <a href="skills.html">⚡ 技能</a>
-      <a href="eco.html">📝 服務</a>
+    <div class="hamburger-menu" id="hamburgerMenu" role="menu">
+      <a href="contact.html" role="menuitem"><span aria-hidden="true">✉️</span> 聯絡我</a>
+      <a href="about.html" role="menuitem"><span aria-hidden="true">👤</span> 關於我</a>
+      <a href="portfolio.html" role="menuitem"><span aria-hidden="true">💼</span> 作品集</a>
+      <a href="skills.html" role="menuitem"><span aria-hidden="true">⚡</span> 技能</a>
+      <a href="eco.html" role="menuitem"><span aria-hidden="true">📝</span> 服務</a>
     </div>
   </nav>
 </header>
 
-<!-- index.js 依裝置類型決定是否動態載入 three.js（手機完全不下載/不執行） -->
 <script src="index.js" defer></script>
 </body>
 </html>
