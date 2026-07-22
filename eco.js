@@ -15,20 +15,27 @@
      if (!canvas) return;
      const ctx = canvas.getContext('2d');
      let raf = null, running = false, last = 0;
+     const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
    
      function resize() {
-       canvas.width  = canvas.offsetWidth;
-       canvas.height = canvas.offsetHeight;
+       canvas.width  = canvas.offsetWidth  * dpr;
+       canvas.height = canvas.offsetHeight * dpr;
+       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
      }
      resize();
-     window.addEventListener('resize', resize, { passive: true });
+     let resizeRaf = null;
+     window.addEventListener('resize', () => {
+       if (resizeRaf) return;
+       resizeRaf = requestAnimationFrame(() => { resize(); resizeRaf = null; });
+     }, { passive: true });
    
      function loop(ts) {
        if (!running) return;
        const dt = Math.min(ts - last, 100);
        last = ts;
-       ctx.clearRect(0, 0, canvas.width, canvas.height);
-       drawFn(ctx, canvas.width, canvas.height, dt);
+       const w = canvas.offsetWidth, h = canvas.offsetHeight;
+       ctx.clearRect(0, 0, w, h);
+       drawFn(ctx, w, h, dt);
        raf = requestAnimationFrame(loop);
      }
    
@@ -132,13 +139,19 @@
    
      const ctx = canvas.getContext('2d');
      let raf = null, running = false, last = 0;
+     const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
    
      function resize() {
-       canvas.width  = canvas.offsetWidth;
-       canvas.height = canvas.offsetHeight;
+       canvas.width  = canvas.offsetWidth  * dpr;
+       canvas.height = canvas.offsetHeight * dpr;
+       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
      }
      resize();
-     window.addEventListener('resize', resize, { passive: true });
+     let resizeRaf = null;
+     window.addEventListener('resize', () => {
+       if (resizeRaf) return;
+       resizeRaf = requestAnimationFrame(() => { resize(); resizeRaf = null; });
+     }, { passive: true });
    
      const MAX_AMB = isMobile ? 45 : 100;
      const particles = [];
@@ -146,8 +159,8 @@
      function mkAmbient() {
        return {
          kind: 'amb',
-         x:  Math.random() * canvas.width,
-         y:  Math.random() * canvas.height,
+         x:  Math.random() * canvas.offsetWidth,
+         y:  Math.random() * canvas.offsetHeight,
          vx: (Math.random() - 0.5) * 0.15,
          vy: (Math.random() - 0.5) * 0.15,
          r:  Math.random() * 1.5 + 0.4,
@@ -226,8 +239,9 @@
      function loop(ts) {
        if (!running) return;
        const dt = Math.min(ts - last, 100); last = ts;
-       ctx.clearRect(0, 0, canvas.width, canvas.height);
-       draw(canvas.width, canvas.height, dt);
+       const w = canvas.offsetWidth, h = canvas.offsetHeight;
+       ctx.clearRect(0, 0, w, h);
+       draw(w, h, dt);
        raf = requestAnimationFrame(loop);
      }
      function start() {
@@ -377,48 +391,7 @@
    })();
    
    /* ════════════════════════════════════════════════════════════
-      7. METRIC COUNT-UP — 進場後數字淡入/計數，僅觸發一次
-   ════════════════════════════════════════════════════════════ */
-   (function initMetrics() {
-     const counters = document.querySelectorAll('.metric-count');
-     if (!counters.length) return;
-   
-     function animateCount(el) {
-       const target   = parseFloat(el.dataset.target) || 0;
-       const decimals = parseInt(el.dataset.decimals || '0', 10);
-       const suffix   = el.dataset.suffix || '';
-       const duration = 1200;
-       const start    = performance.now();
-   
-       if (prefersReducedMotion) {
-         el.textContent = target.toFixed(decimals) + suffix;
-         return;
-       }
-   
-       function tick(now) {
-         const p = Math.min((now - start) / duration, 1);
-         const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
-         const value = target * eased;
-         el.textContent = value.toFixed(decimals) + suffix;
-         if (p < 1) requestAnimationFrame(tick);
-       }
-       requestAnimationFrame(tick);
-     }
-   
-     const obs = new IntersectionObserver((entries, observer) => {
-       entries.forEach(entry => {
-         if (entry.isIntersecting) {
-           animateCount(entry.target);
-           observer.unobserve(entry.target);
-         }
-       });
-     }, { threshold: 0.5 });
-   
-     counters.forEach(el => obs.observe(el));
-   })();
-   
-   /* ════════════════════════════════════════════════════════════
-      8. BACK TO TOP
+      7. BACK TO TOP
    ════════════════════════════════════════════════════════════ */
    (function initBackToTop() {
      const btn = document.getElementById('back-to-top');
@@ -436,7 +409,7 @@
    })();
    
    /* ════════════════════════════════════════════════════════════
-      9. QUICK CONTACT FORM — 前端驗證 + 蜜罐防機器人
+      8. QUICK CONTACT FORM — 前端驗證 + 蜜罐防機器人
    ════════════════════════════════════════════════════════════ */
    (function initContactForm() {
      const form   = document.getElementById('quick-contact-form');
@@ -478,7 +451,7 @@
    })();
    
    /* ════════════════════════════════════════════════════════════
-      10. FOOTER YEAR
+      9. FOOTER YEAR
    ════════════════════════════════════════════════════════════ */
    (function setYear() {
      const el = document.getElementById('footer-year');

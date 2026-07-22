@@ -263,12 +263,16 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 /* ---------- 7. HERO ---------- */
 .hero-section {
   position: relative;
-  min-height: 78vh;
+  min-height: 92vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding-top: var(--nav-h);
   overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 8%, rgba(212,175,55,0.14), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 85% 90%, rgba(212,175,55,0.08), transparent 70%),
+    var(--bg);
 }
 
 #bigbang-canvas {
@@ -282,54 +286,41 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
   z-index: 2;
   text-align: center;
   padding: 2rem;
+  animation: hero-rise 1s var(--ease-out) both;
+}
+
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(30px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .hero-title {
-  font-size: clamp(2.6rem, 2rem + 3.6vw, 4.6rem);
-  margin-bottom: 0.8rem;
+  font-size: clamp(2.8rem, 2rem + 5.2vw, 5.6rem);
+  margin-bottom: 0.9rem;
+  background: linear-gradient(115deg, #FFFFFF 30%, var(--gold-light) 55%, var(--gold) 72%, #FFFFFF 90%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: hero-shine 7s linear infinite;
+}
+
+@keyframes hero-shine {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
 }
 
 .hero-sub {
-  font-size: clamp(1rem, 0.9rem + 0.4vw, 1.2rem);
+  font-size: clamp(1rem, 0.9rem + 0.4vw, 1.25rem);
   color: var(--text-secondary);
 }
 
-/* ---------- 8. MARQUEE ---------- */
-.marquee-section {
-  border-top: var(--hairline);
-  border-bottom: var(--hairline);
-  background: var(--surface-1);
-  overflow: hidden;
-  padding: 1.1rem 0;
+@media (prefers-reduced-motion: reduce) {
+  .hero-content { animation: none; opacity: 1; transform: none; }
+  .hero-title { animation: none; background-position: 0 0; }
 }
 
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee-scroll 26s linear infinite;
-}
-.marquee-section:hover .marquee-track { animation-play-state: paused; }
-
-.marquee-list {
-  display: flex;
-  gap: 3rem;
-  padding-right: 3rem;
-  white-space: nowrap;
-}
-
-.marquee-list li {
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  letter-spacing: 0.04em;
-}
-
-@keyframes marquee-scroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-
-/* ---------- 9. SERVICES ---------- */
+/* ---------- 8. SERVICES ---------- */
 .services-section { position: relative; padding: 6rem 0; overflow: hidden; }
 
 #services-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -358,12 +349,15 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
   border-radius: var(--radius-md);
   padding: 2rem;
   overflow: hidden;
-  transition: transform var(--dur-mid) var(--ease-soft), border-color var(--dur-mid) var(--ease-out);
+  transition: transform var(--dur-mid) var(--ease-soft),
+              border-color var(--dur-mid) var(--ease-out),
+              box-shadow var(--dur-mid) var(--ease-out);
   will-change: transform;
 }
 
 .service-card:hover {
   border-color: var(--gold-border);
+  box-shadow: 0 24px 48px -16px rgba(0,0,0,0.6), 0 0 32px -8px rgba(212,175,55,0.18);
 }
 
 .card-shine {
@@ -429,7 +423,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 }
 
 /* ---------- 10. PROCESS ---------- */
-.process-section { padding: 6rem 0; }
+.process-section { padding: 6rem 0; content-visibility: auto; contain-intrinsic-size: 1px 500px; }
 
 .process-grid {
   display: grid;
@@ -465,82 +459,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 
 .step-text { font-size: 0.95rem; color: var(--text-secondary); }
 
-/* ---------- 11. METRICS ---------- */
-.metrics-section { padding: 5rem 0; border-top: var(--hairline); border-bottom: var(--hairline); }
-
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  text-align: center;
-}
-
-.metric-card { padding: 1.5rem; }
-
-.metric-number { margin-bottom: 0.5rem; }
-
-.metric-count {
-  font-family: var(--font-display);
-  font-size: clamp(2.2rem, 1.8rem + 1.8vw, 3.2rem);
-  color: var(--gold);
-  font-weight: 600;
-}
-
-.metric-label { font-size: 0.9rem; color: var(--text-secondary); letter-spacing: 0.02em; }
-
-/* ---------- 12. SHOWCASE ---------- */
-.showcase-section { padding: 6rem 0; }
-
-.showcase-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.6rem;
-}
-
-.showcase-card {
-  position: relative;
-  display: block;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: var(--hairline);
-}
-
-.showcase-media {
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  background: var(--surface-2);
-}
-
-.showcase-media img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  transition: transform var(--dur-slow) var(--ease-out);
-}
-.showcase-card:hover .showcase-media img { transform: scale(1.08); }
-
-.showcase-caption {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  padding: 1.4rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
-  transform: translateY(12px);
-  opacity: 0.85;
-  transition: transform var(--dur-mid) var(--ease-out), opacity var(--dur-mid) var(--ease-out);
-}
-.showcase-card:hover .showcase-caption { transform: translateY(0); opacity: 1; }
-
-.showcase-tag {
-  display: inline-block;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  color: var(--gold);
-  margin-bottom: 0.3rem;
-}
-
-.showcase-title-text { font-size: 1.05rem; color: var(--text-primary); font-family: var(--font-display); font-weight: 500; }
-
 /* ---------- 13. PRICING ---------- */
-.pricing-section { padding: 6rem 0; }
+.pricing-section { padding: 6rem 0; content-visibility: auto; contain-intrinsic-size: 1px 800px; }
 
 .pricing-grid {
   display: grid;
@@ -557,11 +477,23 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: transform var(--dur-mid) var(--ease-soft), border-color var(--dur-mid) var(--ease-out);
+  transition: transform var(--dur-mid) var(--ease-soft),
+              border-color var(--dur-mid) var(--ease-out),
+              box-shadow var(--dur-mid) var(--ease-out);
 }
-.pricing-card:hover { transform: translateY(-8px); border-color: var(--gold-border); }
+.pricing-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--gold-border);
+  box-shadow: 0 24px 48px -16px rgba(0,0,0,0.6), 0 0 32px -8px rgba(212,175,55,0.18);
+}
 
-.pricing-card--featured { border-color: var(--gold-border); }
+.pricing-card--featured {
+  border-color: var(--gold-border);
+  box-shadow: 0 0 0 1px rgba(212,175,55,0.15), 0 30px 60px -20px rgba(212,175,55,0.16);
+}
+.pricing-card--featured:hover {
+  box-shadow: 0 30px 60px -16px rgba(0,0,0,0.65), 0 0 44px -6px rgba(212,175,55,0.3);
+}
 
 .pricing-gloss {
   position: absolute; top: 0; left: 0; right: 0; height: 1px;
@@ -630,7 +562,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 }
 
 /* ---------- 14. CONTACT CTA ---------- */
-.contact-cta-section { padding: 6rem 0; border-top: var(--hairline); }
+.contact-cta-section { padding: 6rem 0; border-top: var(--hairline); content-visibility: auto; contain-intrinsic-size: 1px 600px; }
 
 .contact-cta-grid {
   display: grid;
@@ -704,24 +636,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 .form-status--success { color: #7FD99A; }
 .form-status--error { color: #E27878; }
 
-/* ---------- 15. INSTAGRAM STRIP ---------- */
-.ig-section { padding: 3rem 0 6rem; text-align: center; }
-
-.ig-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.9rem 1.8rem;
-  border: var(--hairline-gold);
-  border-radius: 999px;
-  font-size: 0.95rem;
-  color: var(--gold);
-  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
-}
-.ig-link:hover { background: var(--gold); color: #06060F; }
-
-/* ---------- 16. FOOTER ---------- */
-.site-footer { border-top: var(--hairline); padding: 3rem 0; }
+/* ---------- 15. FOOTER ---------- */
+.site-footer { border-top: var(--hairline); padding: 3rem 0; content-visibility: auto; contain-intrinsic-size: 1px 200px; }
 
 .footer-inner {
   max-width: var(--container-w);
@@ -774,7 +690,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 @media (max-width: 900px) {
   .services-grid { grid-template-columns: 1fr; }
   .pricing-grid { grid-template-columns: 1fr; }
-  .showcase-grid { grid-template-columns: repeat(2, 1fr); }
   .process-grid { grid-template-columns: repeat(2, 1fr); }
   .contact-cta-grid { grid-template-columns: 1fr; gap: 2rem; }
 }
@@ -784,7 +699,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
   .hamburger { display: flex; }
 
   .metrics-grid { grid-template-columns: 1fr; gap: 1rem; }
-  .showcase-grid { grid-template-columns: 1fr; }
 
   .hero-title { font-size: clamp(2.2rem, 1.8rem + 5vw, 3rem); }
 
