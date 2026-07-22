@@ -1,16 +1,12 @@
 /* ============================================================
-   ECO.JS — Full animation suite
-   1. Hero Canvas  — parabolic arcs + gliding dots
-   2. Services Canvas — ambient nebula + bigbang on card hover
-   3. JS tilt effect on service cards (mouse parallax)
-   4. GSAP ScrollTrigger fade-up reveals
-   5. Navbar scroll shadow
-   6. Footer year auto-fill
+   ECO.JS — Ting. Studio 服務頁
+   原生 ES6+ · 無框架依賴 · IntersectionObserver 驅動的動畫
    ============================================================ */
    'use strict';
 
    /* ── global ── */
    const isMobile = window.innerWidth < 768;
+   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
    
    /* ════════════════════════════════════════════════════════════
       UTILITY — canvas resize + IntersectionObserver loop manager
@@ -56,7 +52,6 @@
      return { ctx, start, stop };
    }
    
-   
    /* ════════════════════════════════════════════════════════════
       1. HERO CANVAS — 4 parabolic arcs + gliding light dots
    ════════════════════════════════════════════════════════════ */
@@ -98,12 +93,10 @@
        ctx.lineWidth = 1.3;
        ctx.stroke();
    
-       /* Moving dot — De Casteljau quadratic interpolation */
        const tt = t % 1;
        const dx = (1-tt)*(1-tt)*x0 + 2*(1-tt)*tt*cx + tt*tt*x1;
        const dy = (1-tt)*(1-tt)*y0 + 2*(1-tt)*tt*cy + tt*tt*y1;
    
-       /* Halo */
        const gr = ctx.createRadialGradient(dx, dy, 0, dx, dy, 20);
        gr.addColorStop(0,   color + (alpha + 0.50) + ')');
        gr.addColorStop(0.4, color + (alpha * 0.35) + ')');
@@ -111,7 +104,6 @@
        ctx.beginPath(); ctx.arc(dx, dy, 20, 0, Math.PI*2);
        ctx.fillStyle = gr; ctx.fill();
    
-       /* Core dot */
        ctx.beginPath(); ctx.arc(dx, dy, 2.6, 0, Math.PI*2);
        ctx.fillStyle = color + '0.95)'; ctx.fill();
      }
@@ -129,9 +121,9 @@
      });
    })();
    
-   
    /* ════════════════════════════════════════════════════════════
       2. SERVICES CANVAS — ambient nebula + bigbang on hover
+      (手機關閉 bigbang 觸發)
    ════════════════════════════════════════════════════════════ */
    (function servicesCanvas() {
      const canvas  = document.getElementById('services-canvas');
@@ -148,7 +140,6 @@
      resize();
      window.addEventListener('resize', resize, { passive: true });
    
-     /* ── Particle pool ── */
      const MAX_AMB = isMobile ? 45 : 100;
      const particles = [];
    
@@ -167,7 +158,6 @@
      function mkBang(ox, oy) {
        const angle = Math.random() * Math.PI * 2;
        const spd   = Math.random() * (isMobile ? 2.8 : 4.0) + 1.0;
-       /* Spawn ring — slight offset from centre so burst feels radial */
        const spread = Math.random() * 20;
        return {
          kind: 'bang',
@@ -179,16 +169,14 @@
          a:  Math.random() * 0.75 + 0.25,
          life:  1.0,
          decay: Math.random() * 0.013 + 0.007,
-         /* colour alternates gold / pale */
          gold: Math.random() > 0.4,
        };
      }
    
-     /* Seed */
      while (particles.length < MAX_AMB) particles.push(mkAmbient());
    
-     /* Public trigger — called by mouseenter on cards */
      function triggerBigBang(screenX, screenY) {
+       if (isMobile) return; // 手機關閉爆發
        const rect = canvas.getBoundingClientRect();
        const ox = screenX - rect.left;
        const oy = screenY - rect.top;
@@ -196,11 +184,9 @@
        for (let i = 0; i < n; i++) particles.push(mkBang(ox, oy));
      }
    
-     /* ── Draw ── */
      function draw(W, H, dt) {
        const f = dt / 16.67;
    
-       /* Replenish ambient */
        if (particles.filter(p => p.kind === 'amb').length < MAX_AMB) {
          particles.push(mkAmbient());
        }
@@ -216,7 +202,6 @@
            ctx.fillStyle = `rgba(212,175,55,${p.a})`; ctx.fill();
    
          } else {
-           /* bang particle */
            p.x    += p.vx * f; p.y   += p.vy * f;
            p.vx   *= 0.972;    p.vy  *= 0.972;
            p.life -= p.decay * f;
@@ -225,7 +210,6 @@
            const ca  = p.a * p.life;
            const rgb = p.gold ? '212,175,55' : '245,224,144';
    
-           /* Outer glow */
            const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 6);
            glow.addColorStop(0,   `rgba(${rgb},${ca})`);
            glow.addColorStop(0.5, `rgba(${rgb},${ca * 0.35})`);
@@ -233,14 +217,12 @@
            ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 6, 0, Math.PI*2);
            ctx.fillStyle = glow; ctx.fill();
    
-           /* Inner core */
            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
            ctx.fillStyle = `rgba(${rgb},${Math.min(ca * 1.8, 1)})`; ctx.fill();
          }
        }
      }
    
-     /* ── Loop ── */
      function loop(ts) {
        if (!running) return;
        const dt = Math.min(ts - last, 100); last = ts;
@@ -263,7 +245,6 @@
      obs.observe(section);
      start();
    
-     /* ── .service-card mouseenter → bigbang at card centre ── */
      document.querySelectorAll('.service-card').forEach(card => {
        card.addEventListener('mouseenter', () => {
          const r = card.getBoundingClientRect();
@@ -272,25 +253,23 @@
      });
    })();
    
-   
    /* ════════════════════════════════════════════════════════════
-      3. JS TILT — mouse-parallax 3-D tilt on [data-tilt] cards
-         (disabled on mobile)
+      3. JS TILT — mouse-parallax (手機關閉)
    ════════════════════════════════════════════════════════════ */
    (function initTilt() {
-     if (isMobile) return;
+     if (isMobile || prefersReducedMotion) return;
    
      document.querySelectorAll('[data-tilt]').forEach(card => {
-       const MAX = 8; // max tilt degrees
+       const MAX = 8;
    
        card.addEventListener('mousemove', e => {
          const r  = card.getBoundingClientRect();
          const cx = r.left + r.width  / 2;
          const cy = r.top  + r.height / 2;
-         const dx = (e.clientX - cx) / (r.width  / 2); // -1 → +1
+         const dx = (e.clientX - cx) / (r.width  / 2);
          const dy = (e.clientY - cy) / (r.height / 2);
    
-         const rotX =  dy * MAX * -1; // tilt away from cursor
+         const rotX =  dy * MAX * -1;
          const rotY =  dx * MAX;
    
          card.style.transform =
@@ -305,69 +284,201 @@
      });
    })();
    
-   
    /* ════════════════════════════════════════════════════════════
-      4. GSAP ScrollTrigger — fade-up reveals
+      4. SCROLL REVEAL — 原生 IntersectionObserver，觸發後立即 unobserve
    ════════════════════════════════════════════════════════════ */
-   (function initGSAP() {
-     if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
-     gsap.registerPlugin(ScrollTrigger);
+   (function initReveal() {
+     const targets = document.querySelectorAll('.reveal');
+     if (!targets.length) return;
    
-     /* Respect prefers-reduced-motion */
-     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-       document.querySelectorAll('.gs-reveal').forEach(el => {
-         el.style.opacity = 1; el.style.transform = 'none';
-       });
+     if (prefersReducedMotion) {
+       targets.forEach(el => el.classList.add('is-visible'));
        return;
      }
    
-     /* Hero — load animation */
-     gsap.from('.hero-content', {
-       opacity: 0, y: 32, duration: 1.05, ease: 'power3.out', delay: 0.28,
-     });
-   
-     /* Group siblings under same parent → stagger together */
-     const groups = new Map();
-     document.querySelectorAll('.gs-reveal').forEach(el => {
-       const p = el.parentElement;
-       if (!groups.has(p)) groups.set(p, []);
-       groups.get(p).push(el);
-     });
-   
-     groups.forEach((els, parent) => {
-       gsap.fromTo(
-         els,
-         { opacity: 0, y: 30 },
-         {
-           opacity: 1, y: 0,
-           duration: 0.78, ease: 'power3.out', stagger: 0.14,
-           scrollTrigger: {
-             trigger: parent,
-             start: 'top 83%',
-             toggleActions: 'play none none none',
-           },
+     const obs = new IntersectionObserver((entries, observer) => {
+       entries.forEach(entry => {
+         if (entry.isIntersecting) {
+           entry.target.classList.add('is-visible');
+           observer.unobserve(entry.target); // 釋放資源
          }
-       );
-     });
+       });
+     }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+   
+     targets.forEach(el => obs.observe(el));
    })();
    
-   
    /* ════════════════════════════════════════════════════════════
-      5. NAVBAR — scroll shadow
+      5. NAVBAR — glassmorphism on scroll
    ════════════════════════════════════════════════════════════ */
    (function initNavbar() {
      const nav = document.getElementById('navbar');
      if (!nav) return;
-     window.addEventListener('scroll', () => {
-       nav.style.boxShadow = window.scrollY > 20
-         ? '0 2px 28px rgba(0,0,0,0.65)'
-         : 'none';
-     }, { passive: true });
+   
+     function update() {
+       nav.classList.toggle('navbar--scrolled', window.scrollY > 50);
+     }
+     update();
+     window.addEventListener('scroll', update, { passive: true });
    })();
    
+   /* ════════════════════════════════════════════════════════════
+      6. MOBILE DRAWER MENU
+   ════════════════════════════════════════════════════════════ */
+   (function initDrawer() {
+     const hamburger = document.getElementById('hamburger-btn');
+     const drawer    = document.getElementById('mobile-drawer');
+     const overlay   = document.getElementById('drawer-overlay');
+     const closeBtn  = document.getElementById('drawer-close-btn');
+     if (!hamburger || !drawer || !overlay) return;
+   
+     function openDrawer() {
+       drawer.hidden = false;
+       overlay.hidden = false;
+       // 強制 reflow 讓 transition 生效
+       requestAnimationFrame(() => {
+         drawer.classList.add('is-open');
+         overlay.classList.add('is-visible');
+       });
+       hamburger.classList.add('is-active');
+       hamburger.setAttribute('aria-expanded', 'true');
+       hamburger.setAttribute('aria-label', '關閉選單');
+       document.body.classList.add('no-scroll');
+       closeBtn?.focus();
+     }
+   
+     function closeDrawer() {
+       drawer.classList.remove('is-open');
+       overlay.classList.remove('is-visible');
+       hamburger.classList.remove('is-active');
+       hamburger.setAttribute('aria-expanded', 'false');
+       hamburger.setAttribute('aria-label', '開啟選單');
+       document.body.classList.remove('no-scroll');
+       hamburger.focus();
+       window.setTimeout(() => {
+         if (!drawer.classList.contains('is-open')) {
+           drawer.hidden = true;
+           overlay.hidden = true;
+         }
+       }, 450);
+     }
+   
+     hamburger.addEventListener('click', () => {
+       const isOpen = drawer.classList.contains('is-open');
+       isOpen ? closeDrawer() : openDrawer();
+     });
+     closeBtn?.addEventListener('click', closeDrawer);
+     overlay.addEventListener('click', closeDrawer);
+     drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
+   
+     document.addEventListener('keydown', e => {
+       if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer();
+     });
+   })();
    
    /* ════════════════════════════════════════════════════════════
-      6. FOOTER YEAR — auto current year
+      7. METRIC COUNT-UP — 進場後數字淡入/計數，僅觸發一次
+   ════════════════════════════════════════════════════════════ */
+   (function initMetrics() {
+     const counters = document.querySelectorAll('.metric-count');
+     if (!counters.length) return;
+   
+     function animateCount(el) {
+       const target   = parseFloat(el.dataset.target) || 0;
+       const decimals = parseInt(el.dataset.decimals || '0', 10);
+       const suffix   = el.dataset.suffix || '';
+       const duration = 1200;
+       const start    = performance.now();
+   
+       if (prefersReducedMotion) {
+         el.textContent = target.toFixed(decimals) + suffix;
+         return;
+       }
+   
+       function tick(now) {
+         const p = Math.min((now - start) / duration, 1);
+         const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+         const value = target * eased;
+         el.textContent = value.toFixed(decimals) + suffix;
+         if (p < 1) requestAnimationFrame(tick);
+       }
+       requestAnimationFrame(tick);
+     }
+   
+     const obs = new IntersectionObserver((entries, observer) => {
+       entries.forEach(entry => {
+         if (entry.isIntersecting) {
+           animateCount(entry.target);
+           observer.unobserve(entry.target);
+         }
+       });
+     }, { threshold: 0.5 });
+   
+     counters.forEach(el => obs.observe(el));
+   })();
+   
+   /* ════════════════════════════════════════════════════════════
+      8. BACK TO TOP
+   ════════════════════════════════════════════════════════════ */
+   (function initBackToTop() {
+     const btn = document.getElementById('back-to-top');
+     if (!btn) return;
+   
+     function update() {
+       btn.classList.toggle('is-visible', window.scrollY > 480);
+     }
+     update();
+     window.addEventListener('scroll', update, { passive: true });
+   
+     btn.addEventListener('click', () => {
+       window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+     });
+   })();
+   
+   /* ════════════════════════════════════════════════════════════
+      9. QUICK CONTACT FORM — 前端驗證 + 蜜罐防機器人
+   ════════════════════════════════════════════════════════════ */
+   (function initContactForm() {
+     const form   = document.getElementById('quick-contact-form');
+     const status = document.getElementById('form-status');
+     if (!form || !status) return;
+   
+     form.addEventListener('submit', e => {
+       e.preventDefault();
+   
+       // 蜜罐欄位：機器人通常會自動填入此隱藏欄位
+       const honeypot = form.querySelector('#qc-company');
+       if (honeypot && honeypot.value.trim() !== '') {
+         return; // 靜默丟棄，不給機器人任何回饋
+       }
+   
+       const name    = form.querySelector('#qc-name');
+       const email   = form.querySelector('#qc-email');
+       const message = form.querySelector('#qc-message');
+   
+       if (!name.value.trim() || !email.value.trim() || !message.value.trim()) {
+         status.textContent = '請完整填寫姓名、Email 與需求簡述。';
+         status.className = 'form-status form-status--error';
+         return;
+       }
+   
+       const submitBtn = form.querySelector('.form-submit');
+       submitBtn.disabled = true;
+       status.textContent = '傳送中…';
+       status.className = 'form-status';
+   
+       // 此處僅為前端示意；正式環境請接上真實的表單服務或後端 API
+       window.setTimeout(() => {
+         status.textContent = '訊息已送出，感謝您的聯繫，我會盡快回覆！';
+         status.className = 'form-status form-status--success';
+         form.reset();
+         submitBtn.disabled = false;
+       }, 700);
+     });
+   })();
+   
+   /* ════════════════════════════════════════════════════════════
+      10. FOOTER YEAR
    ════════════════════════════════════════════════════════════ */
    (function setYear() {
      const el = document.getElementById('footer-year');
