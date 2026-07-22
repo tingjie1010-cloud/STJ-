@@ -1,0 +1,213 @@
+/* core.css — 手機與桌面共用，體積極小，最優先載入，不阻塞內容 */
+/* ═══════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { overflow-x: hidden; }
+
+:root {
+  --gold:               #D4AF37;
+  --gold-light:         #F5E090;
+  --gold-dim:           #8C6E1A;
+  --gold-glow:          rgba(212,175,55,0.35);
+  --gold-border:        rgba(212,175,55,0.28);
+  --gold-border-strong: rgba(212,175,55,0.55);
+  --bg:                 #04040C;
+  --bg-card:            rgba(12,12,22,0.82);
+  --glass-bg:           rgba(8,8,18,0.65);
+  --text:               #EDEDF0;
+  --text-dim:           #888898;
+  --radius-pill:        50px;
+  --radius-card:        28px;
+  --ease-out:           cubic-bezier(0.22, 1, 0.36, 1);
+  --transition:         0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh; /* 使用 dvh 解決手機瀏覽器工具列高度問題 */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 全域 focus 樣式（鍵盤可及性） */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ═══════════════════════════════════════════════
+   GLASS NAV（手機 / 桌面共用）
+═══════════════════════════════════════════════ */
+header { position: relative; z-index: 1000; }
+
+.glass-nav {
+  position: fixed; top: 20px; left: 5%; right: 5%;
+  background: rgba(6,6,16,0.72);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border-radius: 70px;
+  border: 1px solid var(--gold-border);
+  box-shadow:
+    0 8px 40px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    inset 0 0 0 1px rgba(212,175,55,0.06);
+  z-index: 1000;
+  animation: navSlide 0.9s var(--ease-out) 0.1s both;
+}
+
+@keyframes navSlide {
+  from { opacity: 0; transform: translateY(-22px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.nav-container {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.75rem 2rem;
+}
+
+.nav-logo {
+  font-size: 1.7rem; font-weight: 700;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5E090 40%, #D4AF37 100%);
+  background-clip: text; -webkit-background-clip: text; color: transparent;
+  text-decoration: none; letter-spacing: -0.03em;
+  transition: opacity var(--transition);
+}
+.nav-logo:hover { opacity: 0.82; }
+
+.nav-right {
+  display: flex; align-items: center; gap: 20px;
+}
+
+.status-pill {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(212,175,55,0.07);
+  border: 1px solid rgba(212,175,55,0.22);
+  border-radius: 50px; padding: 5px 14px;
+  font-size: 0.72rem; letter-spacing: 2.5px;
+  color: var(--gold); text-transform: uppercase; font-weight: 500;
+  transition: background var(--transition), border-color var(--transition);
+  user-select: none;
+}
+.status-pill:hover {
+  background: rgba(212,175,55,0.12);
+  border-color: rgba(212,175,55,0.4);
+}
+
+.status-dot {
+  width: 7px; height: 7px;
+  background: var(--gold); border-radius: 50%;
+  flex-shrink: 0;
+  animation: statusPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(212,175,55,0.6); }
+  50%       { opacity: 0.7; box-shadow: 0 0 0 6px rgba(212,175,55,0); }
+}
+
+/* ─── 漢堡選單（手機顯示；桌面依 is-desktop 顯示） ─── */
+.hamburger {
+  display: none; flex-direction: column; justify-content: space-between;
+  width: 30px; height: 22px;
+  cursor: pointer; margin-left: 0.75rem; padding: 2px 0;
+  background: none; border: none; font: inherit;
+  border-radius: 4px; /* for focus-visible */
+}
+.hamburger span {
+  display: block; height: 2px; width: 100%;
+  background: var(--gold); border-radius: 2px;
+  transition: transform 0.32s var(--ease-out), opacity 0.2s ease;
+}
+.hamburger.active span:nth-child(1) { transform: translateY(10px) rotate(45deg); }
+.hamburger.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger.active span:nth-child(3) { transform: translateY(-10px) rotate(-45deg); }
+
+.hamburger-menu {
+  position: absolute; top: calc(100% + 12px); right: 5%;
+  background: rgba(6,6,16,0.96);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid var(--gold-border); border-radius: var(--radius-card);
+  padding: 1rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  min-width: 190px;
+  opacity: 0; visibility: hidden;
+  transform: translateY(-8px) scale(0.97);
+  transition: opacity 0.28s ease, visibility 0.28s, transform 0.28s var(--ease-out);
+  z-index: 1100;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(212,175,55,0.06);
+}
+.hamburger-menu.active {
+  opacity: 1; visibility: visible; transform: translateY(0) scale(1);
+}
+.hamburger-menu a {
+  color: var(--text); text-decoration: none;
+  font-size: 0.95rem; font-weight: 500;
+  padding: 0.6rem 1.1rem; border-radius: 100px;
+  display: flex; align-items: center; gap: 10px;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  letter-spacing: 0.3px;
+}
+.hamburger-menu a:hover {
+  background: rgba(212,175,55,0.13);
+  color: var(--gold);
+  transform: translateX(3px);
+}
+.hamburger-menu a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════
+   裝置切換規則
+═══════════════════════════════════════════════ */
+html.is-desktop body { overflow: hidden; }
+html.is-desktop #mobileHero,
+html.is-desktop .footer { display: none !important; }
+html.is-desktop #bg-canvas,
+html.is-desktop .grid-overlay,
+html.is-desktop .vignette { display: none !important; }
+html.is-desktop #three-canvas { display: block; }
+html.is-desktop .scene-label.ready,
+html.is-desktop .wasd-hint.ready { animation: fadeUp 0.9s ease forwards; }
+html.is-desktop .hamburger { display: flex; }
+html.is-desktop .glass-nav {
+  top: 12px; left: 3%; right: 3%;
+  width: 94%; max-width: 480px; margin: 0 auto;
+}
+@media (min-width: 768px) {
+  html.is-desktop .glass-nav { left: 5%; right: 5%; width: auto; max-width: none; margin: 0; }
+}
+
+html.is-mobile #three-canvas,
+html.is-mobile .room-modal,
+html.is-mobile .scene-label,
+html.is-mobile .wasd-hint { display: none !important; }
+html.is-mobile #mobileHero { display: block; }
+html.is-mobile .hamburger { display: flex; }
+html.is-mobile .glass-nav { top: 12px; left: 3%; right: 3%; width: 94%; }
+html.is-mobile .nav-container { padding: 0.55rem 1.2rem; }
+html.is-mobile .nav-logo { font-size: 1.3rem; }
+html.is-mobile .status-pill { padding: 3px 10px; font-size: 0.6rem; letter-spacing: 1.5px; }
+html.is-mobile .status-dot { width: 5px; height: 5px; }
+html.is-mobile body { overflow-x: hidden; overflow-y: auto; }
+html.is-mobile .room-modal__panel { max-width: 92vw; padding: 2.5rem 1.75rem 2rem; }
+
+/* ═══════════════════════════════════════════════
+   prefers-reduced-motion
+═══════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .robot-wrap {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }

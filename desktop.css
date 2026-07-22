@@ -1,0 +1,186 @@
+/* desktop.css — 只有桌面且支援 WebGL 的裝置才會請求，手機完全不下載 */
+/* ═══════════════════════════════════════════════
+   THREE.JS CANVAS（桌面主角）
+═══════════════════════════════════════════════ */
+#three-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: auto;
+    outline: none;
+    display: none;
+  }
+  
+  /* ═══════════════════════════════════════════════════════════
+     桌面版 3D — 玻璃擬態彈窗 MODAL
+  ═══════════════════════════════════════════════════════════ */
+  .room-modal {
+    position: fixed; inset: 0; z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.38s var(--ease-out), visibility 0.38s var(--ease-out);
+  }
+  .room-modal.open { opacity: 1; visibility: visible; }
+  
+  .room-modal__backdrop {
+    position: absolute; inset: 0;
+    background: rgba(4,4,12,0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+  }
+  
+  .room-modal__panel {
+    position: relative; z-index: 1;
+    background: rgba(8,8,18,0.82);
+    backdrop-filter: blur(32px) saturate(1.3);
+    -webkit-backdrop-filter: blur(32px) saturate(1.3);
+    border: 1px solid rgba(212,175,55,0.32);
+    border-radius: var(--radius-card);
+    padding: 3rem 2.5rem 2.5rem;
+    min-width: 320px; max-width: 440px; width: 90vw;
+    text-align: center;
+    box-shadow:
+      0 0 0 1px rgba(212,175,55,0.08),
+      0 32px 80px rgba(0,0,0,0.65),
+      0 8px 24px rgba(212,175,55,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    transform: translateY(24px) scale(0.95);
+    transition: transform 0.45s var(--ease-out);
+  }
+  .room-modal.open .room-modal__panel { transform: translateY(0) scale(1); }
+  
+  .room-modal__close {
+    position: absolute; top: 16px; right: 20px;
+    background: rgba(212,175,55,0.08);
+    border: 1px solid rgba(212,175,55,0.22);
+    color: var(--gold);
+    font: inherit; font-size: 0.75rem;
+    width: 34px; height: 34px; border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .room-modal__close:hover {
+    background: rgba(212,175,55,0.22);
+    border-color: rgba(212,175,55,0.6);
+    transform: rotate(90deg) scale(1.1);
+  }
+  .room-modal__close:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+  }
+  
+  .room-modal__icon {
+    font-size: 2.6rem; margin-bottom: 1rem; display: block;
+    filter: drop-shadow(0 0 14px rgba(212,175,55,0.45));
+    animation: iconPop 0.5s var(--ease-out) both;
+  }
+  @keyframes iconPop {
+    from { transform: scale(0.6) rotate(-10deg); opacity: 0; }
+    to   { transform: scale(1)   rotate(0deg);   opacity: 1; }
+  }
+  
+  .room-modal__title {
+    font-size: 1.65rem; font-weight: 700;
+    letter-spacing: -0.02em; margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, #F5E090 0%, #D4AF37 55%, #9A7020 100%);
+    background-clip: text; -webkit-background-clip: text; color: transparent;
+  }
+  
+  .room-modal__desc {
+    font-size: 0.9rem; color: var(--text-dim);
+    line-height: 1.7; margin-bottom: 2rem; font-weight: 400;
+  }
+  
+  .room-modal__actions {
+    display: flex; justify-content: center; margin-bottom: 1.25rem;
+  }
+  
+  .room-modal__btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 0.82rem 2.2rem;
+    background: linear-gradient(135deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.07) 100%);
+    border: 1px solid rgba(212,175,55,0.52);
+    border-radius: 50px; color: var(--gold-light);
+    text-decoration: none; font-size: 0.9rem; font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: background 0.25s ease, border-color 0.25s ease,
+                box-shadow 0.25s ease, transform 0.2s ease;
+    box-shadow: 0 4px 24px rgba(212,175,55,0.14);
+  }
+  .room-modal__btn:hover {
+    background: linear-gradient(135deg, rgba(212,175,55,0.32) 0%, rgba(212,175,55,0.14) 100%);
+    border-color: var(--gold);
+    box-shadow: 0 8px 36px rgba(212,175,55,0.3);
+    transform: translateY(-2px);
+  }
+  .room-modal__btn:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+  }
+  
+  .room-modal__hint {
+    font-size: 0.6rem; letter-spacing: 2px;
+    text-transform: uppercase; color: #404050; font-weight: 400;
+  }
+  
+  /* ─── 3D 場景標題（左下角） ─── */
+  .scene-label {
+    position: fixed; bottom: 40px; left: 40px;
+    z-index: 10;
+    display: flex; flex-direction: column; gap: 4px;
+    opacity: 0; pointer-events: none;
+  }
+  .scene-label span:first-child {
+    font-size: 0.65rem; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--gold); font-weight: 600;
+  }
+  .scene-label__sub {
+    font-size: 0.6rem; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-dim); font-weight: 400;
+  }
+  
+  /* ─── WASD 操作提示（右下角） ─── */
+  .wasd-hint {
+    position: fixed; bottom: 40px; right: 40px;
+    z-index: 10;
+    display: flex; flex-direction: column; gap: 12px;
+    opacity: 0; pointer-events: none;
+  }
+  .wasd-hint__inner {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .wasd-hint__mouse { flex-direction: row; align-items: center; gap: 8px; }
+  .wasd-row { display: flex; gap: 4px; }
+  .wasd-key {
+    display: flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px;
+    background: rgba(212,175,55,0.08);
+    border: 1px solid rgba(212,175,55,0.28);
+    border-radius: 6px; font-size: 0.65rem; font-weight: 700;
+    color: rgba(212,175,55,0.8); letter-spacing: 0;
+  }
+  .wasd-label {
+    font-size: 0.55rem; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-dim); font-weight: 400;
+  }
+  
+  /* ═══════════════════════════════════════════════
+     桌面版 Tooltip（hover 標籤）
+  ═══════════════════════════════════════════════ */
+  #scene-tooltip {
+    pointer-events: none; position: fixed; z-index: 500;
+    background: rgba(6,6,18,0.9);
+    border: 1px solid rgba(212,175,55,0.45);
+    color: var(--gold-light);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.72rem; letter-spacing: 2.5px;
+    text-transform: uppercase; padding: 5px 15px;
+    border-radius: 50px; opacity: 0;
+    transition: opacity 0.15s ease;
+    white-space: nowrap;
+    backdrop-filter: blur(10px);
+    will-change: transform;
+    box-shadow: 0 4px 16px rgba(212,175,55,0.15);
+  }

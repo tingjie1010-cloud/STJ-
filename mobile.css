@@ -1,0 +1,309 @@
+/* mobile.css — 只有手機裝置才會請求，桌面完全不下載 */
+/* ═══════════════════════════════════════════════
+   2D 背景層（弧線軌跡 + 光點）
+═══════════════════════════════════════════════ */
+#bg-canvas {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    z-index: 0; pointer-events: none;
+  }
+  .grid-overlay {
+    position: fixed; inset: 0;
+    z-index: 1; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(212,175,55,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212,175,55,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  }
+  .vignette {
+    position: fixed; inset: 0;
+    z-index: 2; pointer-events: none;
+    background: radial-gradient(ellipse 130% 110% at 50% 50%, transparent 35%, rgba(4,4,12,0.9) 100%);
+  }
+  
+  /* ═══════════════════════════════════════════════════════════
+     手機版主視覺：機器人 HERO + 拋擲動畫
+  ═══════════════════════════════════════════════════════════ */
+  #mobileHero { position: relative; z-index: 10; }
+  
+  .hero {
+    min-height: 100dvh;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; position: relative; text-align: center;
+    padding: 120px 20px 80px;
+  }
+  
+  .robot-stage { position: relative; width: 280px; height: 360px; }
+  
+  .holo-ring {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 210px; height: 24px;
+    background: radial-gradient(ellipse, rgba(212,175,55,0.28) 0%, transparent 70%);
+    border-radius: 50%; filter: blur(5px);
+    animation: ringPulse 3.2s ease-in-out infinite;
+  }
+  @keyframes ringPulse {
+    0%, 100% { opacity: 0.55; transform: translateX(-50%) scaleX(1); }
+    50%       { opacity: 1;    transform: translateX(-50%) scaleX(1.12); }
+  }
+  
+  .orbit-ring {
+    position: absolute; bottom: 0; left: 50%;
+    width: 240px; height: 40px;
+    transform: translateX(-50%); pointer-events: none;
+  }
+  .orbit-dot {
+    position: absolute; width: 5px; height: 5px;
+    background: var(--gold); border-radius: 50%;
+    box-shadow: 0 0 10px var(--gold), 0 0 3px rgba(212,175,55,0.5);
+    animation: orbit 4.2s linear infinite;
+    top: 50%; left: 50%;
+  }
+  .orbit-dot:nth-child(2) { animation-delay: -1.4s; opacity: 0.55; width: 4px; height: 4px; }
+  .orbit-dot:nth-child(3) { animation-delay: -2.8s; opacity: 0.35; width: 3px; height: 3px; }
+  @keyframes orbit {
+    0%   { transform: translate(-50%,-50%) rotate(0deg)   translateX(112px) scale(1); }
+    100% { transform: translate(-50%,-50%) rotate(360deg) translateX(112px) scale(1); }
+  }
+  
+  .robot-wrap {
+    position: absolute; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(140%) scale(0.5);
+    opacity: 0;
+    animation: robotEnter 1.4s var(--ease-out) 0.5s forwards;
+    will-change: transform, opacity;
+  }
+  @keyframes robotEnter {
+    0%   { transform: translateX(-50%) translateY(140%) scale(0.5) rotate(-3deg); opacity: 0; }
+    55%  { transform: translateX(-50%) translateY(-6%) scale(1.05) rotate(1deg);  opacity: 1; }
+    78%  { transform: translateX(-50%) translateY(2%)  scale(0.97) rotate(0deg);  opacity: 1; }
+    100% { transform: translateX(-50%) translateY(0)   scale(1)    rotate(0deg);  opacity: 1; }
+  }
+  
+  .robot-inner { animation: robotFloat 4.2s ease-in-out 2s infinite; }
+  @keyframes robotFloat {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-11px); }
+  }
+  
+  /* Speech bubble — 初始進場靠 bubbleIn 動畫；輪播切換由 JS 加/移除 .fading */
+  .speech-bubble {
+    position: absolute; top: -18px; right: -70px;
+    background: rgba(6,6,20,0.92);
+    backdrop-filter: blur(18px);
+    border: 1px solid var(--gold-border-strong);
+    border-radius: 18px 18px 18px 4px;
+    padding: 6px 13px;
+    font-size: 0.7rem; font-weight: 500; color: var(--gold);
+    letter-spacing: 0.3px; white-space: nowrap;
+    opacity: 0;
+    transform: scale(0.75) translateY(10px);
+    animation: bubbleIn 0.6s var(--ease-out) 2.1s forwards;
+    pointer-events: none; z-index: 20;
+    box-shadow: 0 4px 20px rgba(212,175,55,0.12);
+    transition: opacity 0.28s ease, transform 0.28s var(--ease-out);
+  }
+  .speech-bubble.fading {
+    opacity: 0;
+    transform: scale(0.9) translateY(4px);
+  }
+  .speech-bubble::before {
+    content: '';
+    position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-right-color: var(--gold-border-strong);
+  }
+  @keyframes bubbleIn { to { opacity: 1; transform: scale(1) translateY(0); } }
+  
+  /* ─── Robot SVG 動畫群組 ─── */
+  #robot-head-group {
+    transition: transform 0.12s cubic-bezier(0.2, 1, 0.4, 1);
+    transform-origin: 120px 95px;
+  }
+  #robot-eye-l, #robot-eye-r {
+    transition: transform 0.08s ease;
+    transform-origin: center;
+  }
+  #robot-arm-right {
+    transform-origin: 174px 190px;
+    animation: armIdleR 4s ease-in-out 2s infinite;
+  }
+  #robot-arm-left {
+    transform-origin: 66px 190px;
+    animation: armIdleL 4s ease-in-out 2.4s infinite;
+  }
+  @keyframes armIdleR { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(7deg); } }
+  @keyframes armIdleL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-5deg); } }
+  #robot-arm-right.throwing {
+    animation: armThrow 0.65s var(--ease-out) forwards !important;
+  }
+  @keyframes armThrow {
+    0%   { transform: rotate(0deg); }
+    28%  { transform: rotate(-62deg); }
+    62%  { transform: rotate(42deg); }
+    82%  { transform: rotate(8deg); }
+    100% { transform: rotate(12deg); }
+  }
+  #robot-body-group {
+    animation: bodyBreathe 3.8s ease-in-out 2s infinite;
+    transform-origin: 120px 220px;
+  }
+  @keyframes bodyBreathe {
+    0%, 100% { transform: scaleY(1); }
+    50%       { transform: scaleY(1.012); }
+  }
+  
+  /* ─── 拋擲按鈕（手機版主要導覽） ─── */
+  .buttons-layer {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+  .throw-btn {
+    position: absolute; left: 50%; bottom: 100px;
+    transform: translateX(-50%) scale(0);
+    opacity: 0; pointer-events: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 0.62rem 1.15rem; border-radius: 50px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem; font-weight: 500;
+    color: var(--text); text-decoration: none;
+    background: rgba(8,8,20,0.82);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    border: 1px solid rgba(212,175,55,0.48);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+    white-space: nowrap;
+    transition: background 0.22s ease, border-color 0.22s ease,
+                box-shadow 0.22s ease, color 0.22s ease;
+    z-index: 30; letter-spacing: 0.3px;
+  }
+  .throw-btn:hover {
+    background: rgba(212,175,55,0.12);
+    border-color: rgba(212,175,55,0.7);
+    color: var(--gold-light);
+    box-shadow: 0 4px 30px rgba(212,175,55,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+    transform: translateX(-50%) translateX(var(--tx)) translateY(var(--ty)) scale(1.04) !important;
+  }
+  .throw-btn:active {
+    background: rgba(212,175,55,0.18);
+    border-color: var(--gold);
+    color: #FFE6AA;
+    transform: translateX(-50%) translateX(var(--tx)) translateY(var(--ty)) scale(0.96) !important;
+  }
+  .throw-btn:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+  }
+  .btn-icon { font-size: 0.95rem; flex-shrink: 0; }
+  
+  /* 拋擲落點座標 */
+  .throw-btn[data-i="0"] { --tx: -128px; --ty: -200px; }
+  .throw-btn[data-i="1"] { --tx:  -68px; --ty: -262px; }
+  .throw-btn[data-i="2"] { --tx:    4px; --ty: -282px; }
+  .throw-btn[data-i="3"] { --tx:   78px; --ty: -258px; }
+  .throw-btn[data-i="4"] { --tx:  138px; --ty: -192px; }
+  
+  .throw-btn.thrown {
+    pointer-events: all;
+    animation: btnFly var(--dur, 0.8s) var(--ease-out) var(--dly, 0s) forwards;
+  }
+  @keyframes btnFly {
+    0%   { transform: translateX(-50%) translateX(0) translateY(0) scale(0.15) rotate(0deg); opacity: 0; }
+    12%  { opacity: 1; }
+    62%  { transform: translateX(-50%) translateX(calc(var(--tx)*1.08)) translateY(calc(var(--ty)*1.1)) scale(1.07) rotate(calc(var(--spin,0deg)*1.2)); }
+    82%  { transform: translateX(-50%) translateX(calc(var(--tx)*0.97)) translateY(calc(var(--ty)*0.96)) scale(0.97) rotate(calc(var(--spin,0deg)*0.9)); }
+    100% { transform: translateX(-50%) translateX(var(--tx)) translateY(var(--ty)) scale(1) rotate(var(--spin, 0deg)); opacity: 1; }
+  }
+  
+  /* 較大手機 / 平板 */
+  @media (min-width: 420px) {
+    .throw-btn[data-i="0"] { --tx: -150px; --ty: -205px; }
+    .throw-btn[data-i="1"] { --tx:  -80px; --ty: -272px; }
+    .throw-btn[data-i="2"] { --tx:    5px; --ty: -292px; }
+    .throw-btn[data-i="3"] { --tx:   92px; --ty: -268px; }
+    .throw-btn[data-i="4"] { --tx:  162px; --ty: -198px; }
+  }
+  
+  /* 能量爆裂線 */
+  .energy-burst {
+    position: absolute; bottom: 110px; left: calc(50% + 50px);
+    width: 0; height: 0; pointer-events: none; z-index: 25;
+  }
+  .e-line {
+    position: absolute; top: 0; left: 0; width: 3px; height: 0;
+    background: linear-gradient(to top, var(--gold), rgba(212,175,55,0.3), transparent);
+    border-radius: 2px; transform-origin: bottom center; opacity: 0;
+  }
+  .e-line:nth-child(1) { transform: rotate(-60deg); }
+  .e-line:nth-child(2) { transform: rotate(-30deg); }
+  .e-line:nth-child(3) { transform: rotate(0deg); }
+  .e-line:nth-child(4) { transform: rotate(30deg); }
+  .e-line:nth-child(5) { transform: rotate(60deg); }
+  .e-line.burst { animation: eLine 0.55s ease-out forwards; }
+  @keyframes eLine {
+    0%   { height: 0;    opacity: 1; }
+    55%  { height: 48px; opacity: 0.85; }
+    100% { height: 60px; opacity: 0; }
+  }
+  .e-line:nth-child(1).burst { animation-delay: 0s; }
+  .e-line:nth-child(2).burst { animation-delay: 0.04s; }
+  .e-line:nth-child(3).burst { animation-delay: 0.02s; }
+  .e-line:nth-child(4).burst { animation-delay: 0.05s; }
+  .e-line:nth-child(5).burst { animation-delay: 0.01s; }
+  
+  /* ─── Tagline + Scroll hint ─── */
+  .hero-tagline {
+    margin-top: 2.5rem;
+    font-size: 0.6rem; letter-spacing: 3.5px; text-transform: uppercase;
+    color: var(--text-dim); opacity: 0; transform: translateY(12px);
+    animation: fadeUp 0.8s ease 3.4s forwards; font-weight: 400;
+  }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  
+  .scroll-hint {
+    position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; animation: fadeUp 1s ease 4.2s forwards; z-index: 5;
+  }
+  .scroll-hint span {
+    font-size: 0.5rem; letter-spacing: 4px;
+    color: #444; text-transform: uppercase; font-weight: 400;
+  }
+  .scroll-line {
+    width: 1px; height: 42px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    overflow: hidden;
+  }
+  .scroll-line::after {
+    content: ''; display: block;
+    width: 1px; height: 100%; background: inherit;
+    animation: scrollDrop 2.2s ease-in-out 4.5s infinite;
+    transform-origin: top; transform: scaleY(0);
+  }
+  @keyframes scrollDrop {
+    0%   { transform: scaleY(0); transform-origin: top; }
+    50%  { transform: scaleY(1); transform-origin: top; }
+    51%  { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+  
+  /* ─── Footer ─── */
+  #mobileHero .footer {
+    position: relative; z-index: 10;
+    border-top: 1px solid rgba(212,175,55,0.1);
+    padding: 1.2rem; text-align: center;
+    font-size: 0.6rem; color: #383848;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  
+  /* ─── 小手機微調 ─── */
+  @media (max-width: 380px) {
+    .robot-stage { width: 240px; height: 320px; }
+    .speech-bubble { right: -36px; top: -20px; font-size: 0.62rem; padding: 5px 10px; }
+    .orbit-ring { width: 210px; }
+    @keyframes orbit {
+      0%   { transform: translate(-50%,-50%) rotate(0deg)   translateX(95px) scale(1); }
+      100% { transform: translate(-50%,-50%) rotate(360deg) translateX(95px) scale(1); }
+    }
+  }
