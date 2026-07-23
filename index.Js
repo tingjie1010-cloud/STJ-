@@ -21,6 +21,10 @@ const USE_3D    = !IS_MOBILE && HAS_WEBGL;
 // 立即在 <html> 標記模式，CSS 依此決定顯示/隱藏，避免閃爍與無用渲染。
 document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
 
+// #region agent log
+fetch('http://127.0.0.1:7601/ingest/e604be3b-d853-415c-a576-91302f009b10',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'1814ed'},body:JSON.stringify({sessionId:'1814ed',location:'index.Js:22',message:'mode init',data:{HAS_WEBGL,IS_MOBILE,USE_3D,innerWidth:window.innerWidth,htmlClass:document.documentElement.className},timestamp:Date.now(),hypothesisId:'A-B'})}).catch(()=>{});
+// #endregion
+
 /* ═══════════════════════════════════════════════════════════
    2D 背景 CANVAS — 弧線軌跡 + 光點
    手機版：主視覺背景，常駐繪製。
@@ -28,6 +32,9 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
    省去白白運行的 rAF。
 ═══════════════════════════════════════════════════════════ */
 (function () {
+  // #region agent log
+  fetch('http://127.0.0.1:7601/ingest/e604be3b-d853-415c-a576-91302f009b10',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'1814ed'},body:JSON.stringify({sessionId:'1814ed',location:'index.Js:bg-canvas',message:'bg canvas IIFE',data:{skipped:USE_3D,USE_3D},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+  // #endregion
   if (USE_3D) return; // 桌面 3D 模式下這層永遠被蓋住，直接跳過整個迴圈
 
   const canvas = document.getElementById('bg-canvas');
@@ -116,6 +123,9 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
    機器人拋擲動畫（手機版主導覽 — 桌面 3D 模式不執行）
 ═══════════════════════════════════════════════════════════ */
 (function () {
+  // #region agent log
+  fetch('http://127.0.0.1:7601/ingest/e604be3b-d853-415c-a576-91302f009b10',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'1814ed'},body:JSON.stringify({sessionId:'1814ed',location:'index.Js:throw',message:'throw sequence IIFE',data:{skipped:USE_3D,btnCount:document.querySelectorAll('.throw-btn').length},timestamp:Date.now(),hypothesisId:'C-E'})}).catch(()=>{});
+  // #endregion
   if (USE_3D) return;
 
   const arm    = document.getElementById('robot-arm-right');
@@ -160,6 +170,10 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
           arm.style.animation = 'armIdleR 4s ease-in-out 0s infinite';
         }
         sequenceDone = true;
+        // #region agent log
+        const thrownCount = Array.from(btns).filter(b => b.classList.contains('thrown')).length;
+        fetch('http://127.0.0.1:7601/ingest/e604be3b-d853-415c-a576-91302f009b10',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'1814ed'},body:JSON.stringify({sessionId:'1814ed',location:'index.Js:throw-done',message:'throw sequence done',data:{sequenceDone,thrownCount,totalBtns:btns.length},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
+        // #endregion
       }, 2200));
     }, 2000));
   }
@@ -272,6 +286,19 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
   const THREE_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
   const FALLBACK_FLAG = 'ting_3d_fallback';
 
+  // Bloom 後製特效（讓金色光點/邊框產生真實的發光暈染，是「震撼感」的關鍵）
+  // 刻意跟核心 three.js 分開處理：這幾個 addon 載入失敗完全不影響 3D 場景本身，
+  // 只是少了發光效果而已，絕不會因此掉回手機版。
+  const POSTFX_BASE = 'https://unpkg.com/three@0.128.0/examples/js/';
+  const POSTFX_FILES = [
+    'postprocessing/EffectComposer.js',
+    'postprocessing/RenderPass.js',
+    'postprocessing/ShaderPass.js',
+    'shaders/CopyShader.js',
+    'shaders/LuminosityHighPassShader.js',
+    'postprocessing/UnrealBloomPass.js'
+  ];
+
   function loadScript(src) {
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
@@ -284,6 +311,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
   }
 
   loadScript(THREE_SRC)
+    .then(() => Promise.allSettled(POSTFX_FILES.map(f => loadScript(POSTFX_BASE + f))))
     .then(() => {
       try {
         initDesktop3D();
@@ -300,6 +328,10 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
       // 用 sessionStorage 旗標防止 CDN 持續無法載入時造成無限重整迴圈
       let alreadyTried = false;
       try { alreadyTried = sessionStorage.getItem(FALLBACK_FLAG) === '1'; } catch (e) { /* 隱私模式等情況忽略 */ }
+
+      // #region agent log
+      fetch('http://127.0.0.1:7601/ingest/e604be3b-d853-415c-a576-91302f009b10',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'1814ed'},body:JSON.stringify({sessionId:'1814ed',location:'index.Js:3d-fallback',message:'three.js load failed',data:{alreadyTried,USE_3D,htmlClass:document.documentElement.className,mobileHeroDisplay:document.getElementById('mobileHero')?getComputedStyle(document.getElementById('mobileHero')).display:'missing'},timestamp:Date.now(),hypothesisId:'C-D'})}).catch(()=>{});
+      // #endregion
 
       if (alreadyTried) {
         // 重整過一次仍失敗：不再重整，直接靜態切換到手機版樣式並提示
@@ -383,10 +415,43 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
        SCENE & CAMERA — far=50（霧效遠距剔除）
     ══════════════════════════════════════════════ */
     const scene  = new THREE.Scene();
-    scene.background = new THREE.Color(0x04040C);
-    scene.fog = new THREE.Fog(0x04040C, 30, 80);
+    scene.background = new THREE.Color(0x02020A);
+    scene.fog = new THREE.FogExp2(0x02020A, 0.018);
 
     const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+
+    /* ══════════════════════════════════════════════
+       BLOOM 後製 — 金色邊框/光點會產生真實暈染發光。
+       若 addon 沒載入成功（例如 CDN 被擋），composer 保持 null，
+       renderFrame() 會自動退回 renderer.render()，畫面仍正常，
+       只是少了發光效果，絕不會整個場景壞掉。
+    ══════════════════════════════════════════════ */
+    let composer   = null;
+    let bloomPass  = null;
+    const bloomAvailable = typeof THREE.EffectComposer === 'function' &&
+                            typeof THREE.RenderPass    === 'function' &&
+                            typeof THREE.UnrealBloomPass === 'function';
+    function setupBloom() {
+      if (!bloomAvailable) return;
+      try {
+        composer = new THREE.EffectComposer(renderer);
+        composer.addPass(new THREE.RenderPass(scene, camera));
+        bloomPass = new THREE.UnrealBloomPass(
+          new THREE.Vector2(window.innerWidth, window.innerHeight),
+          0.55,  // strength — 發光強度，數值越大越夢幻，建議 0.4–0.9 之間微調
+          0.35,  // radius   — 光暈擴散半徑
+          0.32   // threshold — 只有夠亮的金色/白色高光才會發光，避免整個畫面糊掉
+        );
+        composer.addPass(bloomPass);
+      } catch (err) {
+        console.warn('[3D scene] Bloom 後製初始化失敗，改用一般渲染：', err);
+        composer = null;
+      }
+    }
+    function renderFrame() {
+      if (composer) composer.render();
+      else renderer.render(scene, camera);
+    }
 
     const camActual  = { pos: new THREE.Vector3(0, 22, 32), look: new THREE.Vector3(0, 0, 0) };
     const camDesired = { pos: new THREE.Vector3(0, 5.4, 34.5), look: new THREE.Vector3(0, 1.6, 24.5) };
@@ -421,7 +486,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
        LIGHTS — 僅主光源投影，次要光源不投射陰影；
        512x512 陰影貼圖 + bias，搭配 PCFSoftShadowMap 柔化邊緣
     ══════════════════════════════════════════════ */
-    scene.add(new THREE.AmbientLight(0xfff5cc, 0.35));
+    scene.add(new THREE.AmbientLight(0xffeeff, 0.28));
 
     const dirLight = new THREE.DirectionalLight(0xfff5cc, 0.5);
     dirLight.position.set(5, 18, 8);
@@ -436,15 +501,27 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
       const s = new THREE.SpotLight(color, intensity);
       s.position.set(x, y, z);
       s.angle = angle; s.penumbra = penumbra; s.decay = decay; s.distance = 45;
-      s.castShadow = false; // 次要光源不投射陰影，省一次 shadow pass
+      s.castShadow = false;
       s.target.position.set(0, 0, 0);
       scene.add(s); scene.add(s.target);
       return s;
     }
-    makeSpot(0xFFF5CC, 1.8, 10, 20, 10, Math.PI / 5, 0.4, 1.2);
-    makeSpot(0xD4AF37, 1.2, -12, 16, 6, Math.PI / 6, 0.5, 1.4);
+    makeSpot(0xFF88CC, 1.4, 10, 20, 10, Math.PI / 5, 0.5, 1.2);
+    makeSpot(0x44AAFF, 1.1, -12, 16, 6, Math.PI / 6, 0.5, 1.4);
 
-    const pointLight = new THREE.PointLight(0xD4AF37, 0.6, 30);
+    /* 彩虹漫射點光 — 3 顆靜態位置，僅強度脈動，不移動（省 shadow/lighting pass） */
+    const rainbowColors = [0xFF3366, 0xFF8800, 0xFFEE00, 0x33FF88, 0x00BBFF, 0xBB44FF];
+    const rainbowLights = [
+      new THREE.PointLight(0xFF4488, 1.1, 28),
+      new THREE.PointLight(0x44DDFF, 1.1, 28),
+      new THREE.PointLight(0xAAFF44, 0.9, 28)
+    ];
+    rainbowLights[0].position.set(-20, 9,  -4);
+    rainbowLights[1].position.set( 20, 9,  -4);
+    rainbowLights[2].position.set(  0, 12, -24);
+    rainbowLights.forEach(l => scene.add(l));
+
+    const pointLight = new THREE.PointLight(0xD4AF37, 0.5, 30);
     pointLight.position.set(0, 8, 0);
     scene.add(pointLight);
 
@@ -479,12 +556,17 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     const tickables = [];
 
     (function buildParticles() {
-      const COUNT = 180;
+      const COUNT = 140;
       const positions = new Float32Array(COUNT * 3);
       const colors    = new Float32Array(COUNT * 3);
       const speeds    = new Float32Array(COUNT);
       const offsets   = new Float32Array(COUNT);
-      const palette = [[0.831,0.686,0.216],[0.961,0.882,0.565],[1.0,0.902,0.8],[0.95,0.82,0.4],[0.78,0.62,0.18]];
+      /* 彩虹全光譜調色盤 */
+      const palette = [
+        [1.0,0.20,0.40],[1.0,0.55,0.10],[1.0,0.93,0.10],
+        [0.20,1.0,0.53],[0.10,0.73,1.0],[0.73,0.27,1.0],
+        [1.0,0.40,0.80],[0.40,1.0,0.90],[0.831,0.686,0.216]
+      ];
 
       for (let i = 0; i < COUNT; i++) {
         positions[i * 3]     = (Math.random() - 0.5) * 26;
@@ -501,7 +583,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
       geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
       const mat = new THREE.PointsMaterial({
-        size: 0.09, transparent: true, opacity: 0.5,
+        size: 0.13, transparent: true, opacity: 0.75,
         sizeAttenuation: true, depthWrite: false, vertexColors: true
       });
 
@@ -523,6 +605,313 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
         geo.attributes.position.needsUpdate = true;
       };
       tickables.push(particles);
+    })();
+
+    /* 彩虹燈光動畫 — 僅脈動強度 + 每 10 幀換色（不移動位置，省 GPU lighting pass） */
+    const _rainbowLights = rainbowLights;
+    const _rlPalette = [
+      [0xFF4488, 0x44DDFF, 0xAAFF44],
+      [0xFF8800, 0xBB44FF, 0x00FFCC],
+      [0xFFEE00, 0xFF44AA, 0x44AAFF]
+    ];
+    let _rlPhase = 0, _rlFrame = 0;
+    tickables.push({ userData: { tick: function(t) {
+      _rlFrame++;
+      if (_rlFrame % 10 === 0) {
+        _rlPhase = (_rlPhase + 1) % _rlPalette.length;
+        _rlPalette[_rlPhase].forEach((col, i) => _rlPalette[_rlPhase] && (_rainbowLights[i].color.setHex(col)));
+      }
+      _rainbowLights[0].intensity = 0.8 + 0.3 * Math.sin(t * 0.9);
+      _rainbowLights[1].intensity = 0.8 + 0.3 * Math.sin(t * 0.9 + 2.1);
+      _rainbowLights[2].intensity = 0.7 + 0.25 * Math.sin(t * 0.9 + 4.2);
+    }}});
+
+    /* ══════════════════════════════════════════════
+       奇幻生物系統 — 鯨魚 / 鳥群 / 水母精靈
+    ══════════════════════════════════════════════ */
+    (function buildCreatures() {
+
+      /* ── 輔助：HSL 轉 0xRRGGBB ── */
+      function hslToHex(h, s, l) {
+        const a = s * Math.min(l, 1 - l);
+        const f = n => { const k = (n + h / 30) % 12; return l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); };
+        const r = Math.round(f(0) * 255), g = Math.round(f(8) * 255), b = Math.round(f(4) * 255);
+        return (r << 16) | (g << 8) | b;
+      }
+
+      /* ━━━━ 1. 太空鯨魚 × 2 ━━━━
+         低聚低頂點幾何，空中緩慢游弋，帶彩虹乳光。 */
+      function buildWhale(hue, startAngle, orbitR, orbitY, orbitSpeed) {
+        const g = new THREE.Group();
+
+        /* 身體 — 拉伸球體 */
+        const bodyGeo = new THREE.SphereGeometry(1, 7, 5);
+        /* 手動把頂點拉伸成鯨魚流線型 */
+        const bPos = bodyGeo.attributes.position;
+        for (let i = 0; i < bPos.count; i++) {
+          const x = bPos.getX(i), y = bPos.getY(i), z = bPos.getZ(i);
+          bPos.setXYZ(i, x * 2.8, y * 0.85, z * 1.2);
+        }
+        bPos.needsUpdate = true;
+        bodyGeo.computeVertexNormals();
+        const bodyMat = new THREE.MeshStandardMaterial({
+          color: hslToHex(hue, 0.7, 0.28),
+          emissive: hslToHex(hue, 1.0, 0.18),
+          emissiveIntensity: 0.6,
+          metalness: 0.2, roughness: 0.55,
+          transparent: true, opacity: 0.92
+        });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        g.add(body);
+
+        /* 尾鰭 */
+        const tailMat = new THREE.MeshStandardMaterial({
+          color: hslToHex((hue + 30) % 360, 0.8, 0.35),
+          emissive: hslToHex(hue, 1.0, 0.2),
+          emissiveIntensity: 0.8, transparent: true, opacity: 0.8, side: THREE.DoubleSide
+        });
+        [-1, 1].forEach(side => {
+          const fluke = new THREE.Mesh(
+            new THREE.ConeGeometry(0.55, 1.1, 4),
+            tailMat
+          );
+          fluke.rotation.z = side * 0.62;
+          fluke.position.set(-2.8, side * 0.35, 0);
+          fluke.rotation.x = Math.PI / 2;
+          g.add(fluke);
+        });
+
+        /* 胸鰭 */
+        [-1, 1].forEach(side => {
+          const fin = new THREE.Mesh(
+            new THREE.ConeGeometry(0.3, 1.3, 4),
+            new THREE.MeshStandardMaterial({
+              color: hslToHex((hue + 60) % 360, 0.75, 0.32),
+              emissive: hslToHex(hue, 1, 0.15), emissiveIntensity: 0.5,
+              transparent: true, opacity: 0.75, side: THREE.DoubleSide
+            })
+          );
+          fin.position.set(0.4, 0, side * 0.95);
+          fin.rotation.z = side * 1.2;
+          g.add(fin);
+        });
+
+        /* 乳光光暈 */
+        const glow = new THREE.Mesh(
+          new THREE.SphereGeometry(1.45, 8, 6),
+          new THREE.MeshBasicMaterial({
+            color: hslToHex(hue, 1.0, 0.6),
+            transparent: true, opacity: 0.07,
+            side: THREE.BackSide, depthWrite: false
+          })
+        );
+        glow.scale.set(2.9, 1, 1.3);
+        g.add(glow);
+
+        /* 微粒尾跡（6 個小球沿身後隨機飄散） */
+        const trailMat = new THREE.MeshBasicMaterial({
+          color: hslToHex(hue, 1, 0.7), transparent: true, opacity: 0.55, depthWrite: false
+        });
+        const trails = [];
+        for (let i = 0; i < 4; i++) {
+          const t = new THREE.Mesh(new THREE.SphereGeometry(0.07, 4, 4), trailMat.clone());
+          t.userData.offset = i * 0.5 + Math.random() * 0.3;
+          g.add(t); trails.push(t);
+        }
+
+        scene.add(g);
+
+        /* 快取尾鰭網格，避免每幀 forEach + type check */
+        const tailMeshes = g.children.filter(c => c.isMesh && c.geometry && c.geometry.type === 'ConeGeometry');
+
+        /* 動畫狀態 */
+        const state = { angle: startAngle, r: orbitR, y: orbitY, speed: orbitSpeed, hue, bodyMat, glow, trails, tailMeshes, g };
+        tickables.push({ userData: { tick: function(t) {
+          state.angle += state.speed * 0.016;
+          g.position.x = Math.cos(state.angle) * state.r;
+          g.position.z = Math.sin(state.angle) * state.r;
+          g.position.y = state.y + Math.sin(t * 0.35 + state.angle) * 2.2;
+
+          /* 面朝運動方向 */
+          g.rotation.y = -state.angle - Math.PI / 2;
+          /* 輕微俯仰 */
+          g.rotation.z = Math.sin(t * 0.5 + state.angle) * 0.12;
+
+          /* 尾巴搖擺 — 直接用快取引用 */
+          const tailSwing = Math.sin(t * 1.8) * 0.22;
+          state.tailMeshes.forEach(c => { c.rotation.y = tailSwing; });
+
+          /* 尾跡粒子 */
+          state.trails.forEach((tr, i) => {
+            const o = tr.userData.offset;
+            tr.position.set(
+              -2.5 - i * 0.35 + Math.sin(t * 2.1 + o) * 0.25,
+              Math.sin(t * 1.5 + o) * 0.35,
+              Math.cos(t * 1.3 + o) * 0.2
+            );
+            tr.material.opacity = 0.5 * (1 - i / 6);
+          });
+
+          /* 발광 강도 맥동만 (색상 변경 없음 → shader 재컴파일 방지) */
+          state.bodyMat.emissiveIntensity = 0.5 + 0.3 * Math.sin(t * 1.2 + state.angle);
+        }}});
+        return g;
+      }
+
+      buildWhale(210, 0,         22, 13, 0.22);
+      buildWhale(300, Math.PI,   17, 16, 0.17);
+
+      /* ━━━━ 2. 彩虹鳥群 × 6（V 字隊形） ━━━━ */
+      function buildBird(hue) {
+        const g = new THREE.Group();
+        const mat = new THREE.MeshStandardMaterial({
+          color: hslToHex(hue, 0.85, 0.45),
+          emissive: hslToHex(hue, 1, 0.28),
+          emissiveIntensity: 0.9, roughness: 0.4, metalness: 0.1,
+          transparent: true, opacity: 0.88
+        });
+        /* 身體 */
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), mat);
+        body.scale.set(2.2, 0.7, 0.85);
+        g.add(body);
+        /* 翅膀 — 左右各一片三角形 */
+        [-1, 1].forEach(side => {
+          const wg = new THREE.BufferGeometry();
+          wg.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+            0,0,0, side*0.7, 0.08, -0.15, side*0.35, 0, 0.25
+          ]), 3));
+          wg.computeVertexNormals();
+          const wing = new THREE.Mesh(wg, new THREE.MeshStandardMaterial({
+            color: hslToHex((hue + 40) % 360, 0.9, 0.55),
+            emissive: hslToHex(hue, 1, 0.3), emissiveIntensity: 0.7,
+            side: THREE.DoubleSide, transparent: true, opacity: 0.82
+          }));
+          wing.userData.side = side;
+          g.add(wing);
+        });
+        return { g, mat, hue };
+      }
+
+      const flock = [];
+      const BIRD_COUNT = 4;
+      const FLOCK_HUE_START = 0;
+      for (let i = 0; i < BIRD_COUNT; i++) {
+        const hue = (FLOCK_HUE_START + i * 60) % 360;
+        const birdObj = buildBird(hue);
+        /* V 字偏移：奇數左、偶數右 */
+        const side = i % 2 === 0 ? 1 : -1;
+        const row  = Math.floor(i / 2) + 1;
+        birdObj.vOffset = new THREE.Vector3(side * row * 1.6, -row * 0.5, row * 1.4);
+        scene.add(birdObj.g);
+        flock.push(birdObj);
+      }
+
+      /* 鳥群統一沿大圓軌道飛行 */
+      let flockAngle = 1.2;
+      const FLOCK_R = 18;
+      const FLOCK_Y = 11;
+      tickables.push({ userData: { tick: function(t) {
+        flockAngle += 0.0032;
+        const leaderX = Math.cos(flockAngle) * FLOCK_R;
+        const leaderZ = Math.sin(flockAngle) * FLOCK_R;
+        const leaderY = FLOCK_Y + Math.sin(t * 0.4) * 1.8;
+        const fwdYaw  = flockAngle + Math.PI / 2;
+
+        flock.forEach((b, i) => {
+          const vo = b.vOffset;
+          /* 旋轉偏移到飛行方向坐標系 */
+          const ox = vo.x * Math.cos(fwdYaw) - vo.z * Math.sin(fwdYaw);
+          const oz = vo.x * Math.sin(fwdYaw) + vo.z * Math.cos(fwdYaw);
+          b.g.position.set(leaderX + ox, leaderY + vo.y, leaderZ + oz);
+          b.g.rotation.y = -fwdYaw;
+
+          /* 拍翅動畫 */
+          b.g.children.forEach(c => {
+            if (c.userData.side !== undefined) {
+              c.rotation.z = c.userData.side * (0.3 + 0.28 * Math.sin(t * 4.5 + i * 0.9));
+            }
+          });
+
+          /* emissive 強度脈動（不換色，避免 shader 重編） */
+          b.mat.emissiveIntensity = 0.7 + 0.3 * Math.sin(t * 1.5 + i);
+        });
+      }}});
+
+      /* ━━━━ 3. 水母精靈 × 3（空中漂浮） ━━━━ */
+      function buildJellyfish(hue, x, z, yBase) {
+        const g = new THREE.Group();
+
+        /* 傘狀帽 */
+        const capMat = new THREE.MeshStandardMaterial({
+          color: hslToHex(hue, 0.9, 0.38),
+          emissive: hslToHex(hue, 1, 0.3),
+          emissiveIntensity: 1.2,
+          transparent: true, opacity: 0.65,
+          side: THREE.DoubleSide, depthWrite: false
+        });
+        const cap = new THREE.Mesh(
+          new THREE.SphereGeometry(0.55, 7, 6, 0, Math.PI * 2, 0, Math.PI * 0.55),
+          capMat
+        );
+        cap.rotation.x = Math.PI;
+        g.add(cap);
+
+        /* 外層光暈 */
+        const glowMat = new THREE.MeshBasicMaterial({
+          color: hslToHex(hue, 1, 0.65),
+          transparent: true, opacity: 0.12,
+          side: THREE.BackSide, depthWrite: false
+        });
+        const capGlow = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 6, 0, Math.PI*2, 0, Math.PI*0.6), glowMat);
+        capGlow.rotation.x = Math.PI;
+        g.add(capGlow);
+
+        /* 觸鬚 — 10 條下垂曲線（用細圓柱近似） */
+        const tentacleMat = new THREE.MeshBasicMaterial({
+          color: hslToHex((hue + 60) % 360, 1, 0.65),
+          transparent: true, opacity: 0.55, depthWrite: false
+        });
+        const tentacles = [];
+        for (let i = 0; i < 6; i++) {
+          const angle = (i / 10) * Math.PI * 2;
+          const r = 0.28 + (i % 3) * 0.09;
+          const len = 0.55 + (i % 4) * 0.22;
+          const t = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.012, 0.003, len, 3),
+            tentacleMat.clone()
+          );
+          t.position.set(Math.cos(angle) * r, -len / 2 - 0.08, Math.sin(angle) * r);
+          t.userData.tentacleIdx = i;
+          g.add(t); tentacles.push(t);
+        }
+
+        g.position.set(x, yBase, z);
+        scene.add(g);
+
+        const state = { hue, capMat, glowMat, tentacles, g, x, z, yBase };
+        tickables.push({ userData: { tick: function(t) {
+          state.g.position.y = state.yBase + Math.sin(t * 0.55 + state.x) * 1.4;
+          state.g.rotation.y += 0.006;
+
+          /* 觸鬚波動 */
+          state.tentacles.forEach((ten, idx) => {
+            ten.rotation.z = Math.sin(t * 2.2 + idx * 0.7) * 0.18;
+            ten.rotation.x = Math.cos(t * 1.8 + idx * 0.5) * 0.12;
+          });
+
+          /* 傘狀呼吸 */
+          const pulse = 1 + 0.08 * Math.sin(t * 2.5);
+          state.g.children[0].scale.set(pulse, 0.85 + 0.12 * Math.sin(t * 2.5), pulse);
+
+          /* emissive 強度脈動（靜態色，省 shader 重編） */
+          state.capMat.emissiveIntensity = 1.0 + 0.5 * Math.sin(t * 2.0 + state.x);
+        }}});
+      }
+
+      buildJellyfish(  0,  -14, -10, 8);
+      buildJellyfish(120,   12,  -6, 10);
+      buildJellyfish(240,    2, -20, 9);
+
     })();
 
     /* ══════════════════════════════════════════════
@@ -904,33 +1293,6 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     }
 
     /* ══════════════════════════════════════════════
-       樹木 — 極簡花園世界
-    ══════════════════════════════════════════════ */
-    function createTree(x, z, scale = 1) {
-      const g = new THREE.Group();
-      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3D2B1F, roughness: 0.9 });
-      const leafMat = new THREE.MeshStandardMaterial({ color: 0x2D6A4F, roughness: 0.8 });
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2*scale, 0.35*scale, 1.2*scale, 6), trunkMat);
-      trunk.position.y = 0.6*scale; trunk.castShadow = true; trunk.receiveShadow = true; g.add(trunk);
-      const crown = new THREE.Mesh(new THREE.ConeGeometry(0.8*scale, 1.6*scale, 6), leafMat);
-      crown.position.y = 1.6*scale + 0.4*scale; crown.castShadow = true; crown.receiveShadow = true; g.add(crown);
-      const crown2 = new THREE.Mesh(new THREE.ConeGeometry(0.6*scale, 1.2*scale, 6), leafMat);
-      crown2.position.y = 2.4*scale + 0.6*scale; crown2.castShadow = true; crown2.receiveShadow = true; g.add(crown2);
-      g.position.set(x, 0, z);
-      g.rotation.y = Math.random() * Math.PI * 2;
-      return g;
-    }
-
-    const treePositions = [
-      [-18,-25],[-22,-18],[-12,-30],[5,-32],[18,-28],[22,-20],
-      [-25,-5],[-20,5],[25,-5],[20,5],[-15,10],[15,10],
-      [-28,-12],[28,-12],[0,-35],[0,10]
-    ];
-    treePositions.forEach(([x,z]) => {
-      scene.add(createTree(x, z, 0.6 + Math.random() * 0.6));
-    });
-
-    /* ══════════════════════════════════════════════
        微光軌跡 — 連接五個互動物件
     ══════════════════════════════════════════════ */
     const pathPoints = [
@@ -1054,7 +1416,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     /* ══════════════════════════════════════════════
        INPUT — 滑鼠 & 鍵盤
     ══════════════════════════════════════════════ */
-    const keys = { w: false, a: false, s: false, d: false };
+    const keys = { w: false, a: false, s: false, d: false, space: false };
     let mouseMoved = false;
 
     window.addEventListener('mousemove', e => {
@@ -1108,6 +1470,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
       if (k === 'a' || k === 'arrowleft')  keys.a = true;
       if (k === 's' || k === 'arrowdown')  keys.s = true;
       if (k === 'd' || k === 'arrowright') keys.d = true;
+      if (k === ' ' || e.code === 'Space') { keys.space = true; e.preventDefault(); }
     });
     window.addEventListener('keyup', e => {
       const k = e.key.toLowerCase();
@@ -1115,6 +1478,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
       if (k === 'a' || k === 'arrowleft')  keys.a = false;
       if (k === 's' || k === 'arrowdown')  keys.s = false;
       if (k === 'd' || k === 'arrowright') keys.d = false;
+      if (k === ' ' || e.code === 'Space') keys.space = false;
     });
 
     threeCanvas.style.cursor = 'grab';
@@ -1126,6 +1490,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
       if (currentState === 'ZOOMED_IN') return;
       currentState = 'ZOOMED_IN';
       velocity.set(0, 0);
+      velocityY = 0;
 
       const box    = new THREE.Box3().setFromObject(group);
       const center = new THREE.Vector3();
@@ -1150,6 +1515,37 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     const FRICTION  = 0.92;
     const MAX_SPEED = 9;
     const BOUNDS    = 33;
+
+    /* ── 跳躍物理：重力 / 起跳力 / 落地狀態 ── */
+    const GRAVITY     = -30;
+    const JUMP_FORCE  = 11;
+    let   velocityY   = 0;
+    let   isGrounded  = true;
+
+    /* ── 碰撞安全層：避免角色直接穿模走進家具內部 ──
+       半徑取自各物件實際外形，並外擴角色體積作緩衝 */
+    const PLAYER_RADIUS = 0.55;
+    const OBSTACLES = [
+      { x: 0,   z: -12, hx: 2.2, hz: 1.3 },  // about   書桌
+      { x: -10, z: -18, hx: 1.8, hz: 0.6 },  // portfolio 書櫃
+      { x: 10,  z: -18, hx: 0.9, hz: 0.9 },  // contact 電話
+      { x: -6,  z: -4,  hx: 0.6, hz: 0.6 },  // skills  技能樹
+      { x: 6,   z: -4,  hx: 2.5, hz: 0.9 },  // service 服務台
+    ];
+
+    function resolveObstacleCollision(nx, nz) {
+      for (const o of OBSTACLES) {
+        const hx = o.hx + PLAYER_RADIUS, hz = o.hz + PLAYER_RADIUS;
+        const dx = nx - o.x, dz = nz - o.z;
+        if (Math.abs(dx) < hx && Math.abs(dz) < hz) {
+          const overlapX = hx - Math.abs(dx);
+          const overlapZ = hz - Math.abs(dz);
+          if (overlapX < overlapZ) nx = o.x + Math.sign(dx || 1) * hx;
+          else                     nz = o.z + Math.sign(dz || 1) * hz;
+        }
+      }
+      return { x: nx, z: nz };
+    }
 
     const CHASE_RADIUS = 8.5;
     const CHASE_HEIGHT = 4.2;
@@ -1179,8 +1575,24 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
       const frictionFrame = Math.pow(FRICTION, dt / (1 / 60));
       velocity.multiplyScalar(frictionFrame);
 
-      character.position.x = Math.max(-BOUNDS, Math.min(BOUNDS, character.position.x + velocity.x * dt));
-      character.position.z = Math.max(-BOUNDS, Math.min(BOUNDS, character.position.z + velocity.y * dt));
+      const nx = Math.max(-BOUNDS, Math.min(BOUNDS, character.position.x + velocity.x * dt));
+      const nz = Math.max(-BOUNDS, Math.min(BOUNDS, character.position.z + velocity.y * dt));
+      const resolved = resolveObstacleCollision(nx, nz);
+      character.position.x = resolved.x;
+      character.position.z = resolved.z;
+
+      /* 跳躍 + 重力：空白鍵起跳，落地前持續受重力加速下墜 */
+      if (keys.space && isGrounded) {
+        velocityY  = JUMP_FORCE;
+        isGrounded = false;
+      }
+      velocityY += GRAVITY * dt;
+      character.position.y += velocityY * dt;
+      if (character.position.y <= 0) {
+        character.position.y = 0;
+        velocityY  = 0;
+        isGrounded = true;
+      }
 
       /* 角色平滑轉向至移動方向（最短路徑角度插值） */
       if (velocity.length() > 0.35) {
@@ -1199,19 +1611,22 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     }
 
     /* 第三人稱跟隨相機：依 orbit.yaw / pitch 圍繞角色運鏡 */
+    const _chaseCamOffset   = new THREE.Vector3();
+    const _chaseLookForward = new THREE.Vector3();
+    const _chaseLookUp      = new THREE.Vector3(0, 1.5, 0);
     function updateChaseCamera() {
       const yaw = orbit.yaw, pitch = orbit.pitch;
-      const offset = new THREE.Vector3(
+      _chaseCamOffset.set(
         Math.sin(yaw) * Math.cos(pitch) * CHASE_RADIUS,
         CHASE_HEIGHT + Math.sin(pitch) * 3.4,
         Math.cos(yaw) * Math.cos(pitch) * CHASE_RADIUS
       );
-      camDesired.pos.copy(character.position).add(offset);
+      camDesired.pos.copy(character.position).add(_chaseCamOffset);
 
-      const lookForward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+      _chaseLookForward.set(-Math.sin(yaw), 0, -Math.cos(yaw));
       camDesired.look.copy(character.position)
-        .add(new THREE.Vector3(0, 1.5, 0))
-        .addScaledVector(lookForward, 1.3);
+        .add(_chaseLookUp)
+        .addScaledVector(_chaseLookForward, 1.3);
     }
 
     /* ══════════════════════════════════════════════
@@ -1220,7 +1635,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     const clock = new THREE.Clock();
     /* rafId 已於函式頂部宣告，這裡沿用同一個變數 */
     let shadowFrame = 0;
-    const SHADOW_INTERVAL = 3;
+    const SHADOW_INTERVAL = 6; /* 每 6 幀更新一次陰影，省 GPU */
 
     let dprFrameTimeSum = 0;
     let dprFrameCount   = 0;
@@ -1269,7 +1684,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
           tickParticles(elapsed);
           shadowFrame = (shadowFrame + 1) % SHADOW_INTERVAL;
           if (shadowFrame === 0) renderer.shadowMap.needsUpdate = true;
-          renderer.render(scene, camera);
+          renderFrame();
           return;
         }
 
@@ -1322,7 +1737,7 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
         shadowFrame = (shadowFrame + 1) % SHADOW_INTERVAL;
         if (shadowFrame === 0) renderer.shadowMap.needsUpdate = true;
 
-        renderer.render(scene, camera);
+        renderFrame();
       } catch (err) {
         console.error('[3D scene] render error:', err);
       }
@@ -1377,7 +1792,10 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
         }
       });
 
-      pointLight.intensity = 0.55 + 0.18 * Math.sin(t * 1.4) + 0.06 * Math.sin(t * 3.1);
+      pointLight.intensity = 0.45 + 0.18 * Math.sin(t * 1.4) + 0.06 * Math.sin(t * 3.1);
+      /* 地平線光暈也跟著彩虹色脈動 */
+      const hh = (t * 18) % 360;
+      horizonGlow.material.color.setHSL(hh / 360, 0.85, 0.32);
     }
 
     /* ══════════════════════════════════════════════
@@ -1393,6 +1811,8 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(currentDPR);
+        if (composer)  composer.setSize(window.innerWidth, window.innerHeight);
+        if (bloomPass) bloomPass.resolution.set(window.innerWidth, window.innerHeight);
       });
     }
     window.addEventListener('resize', handleResize, { passive: true });
@@ -1410,6 +1830,11 @@ document.documentElement.classList.add(USE_3D ? 'is-desktop' : 'is-mobile');
     }, { once: true });
 
     /* ── START ── */
+    setupBloom();
     animate();
+
+    // #region agent log
+    fetch('http://127.0.0.1:7601/ingest/e604be3b-d853-415c-a576-91302f009b10',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'1814ed'},body:JSON.stringify({sessionId:'1814ed',location:'index.Js:3d-ready',message:'3D init complete',data:{bloomAvailable:!!composer,interactableCount:interactableObjects.length},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
   }
 })();
